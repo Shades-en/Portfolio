@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Montserrat } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { TooltipProvider } from '@/components/ui/tooltip';
-
+import { publicUrl } from "@/constants";
 import personalInfo from "@/data/personal-info.json";
+
+const myUrl = process.env.NEXT_PUBLIC_SITE_URL || publicUrl;
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-});
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  variable: '--font-montserrat',
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -35,34 +32,24 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://owaisiqbal.dev'),
+  metadataBase: new URL(myUrl),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://owaisiqbal.dev',
-    title: 'Owais Iqbal - Portfolio',
-    description: 'Full-stack developer and AI/ML engineer portfolio showcasing innovative projects and technical expertise.',
-    siteName: 'Owais Iqbal Portfolio',
+    url: myUrl,
+    title: personalInfo.seo.title,
+    description: personalInfo.seo.description,
+    siteName: personalInfo.seo.title,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Owais Iqbal - Portfolio',
-    description: 'Full-stack developer and AI/ML engineer portfolio showcasing innovative projects and technical expertise.',
+    title: personalInfo.seo.title,
+    description: personalInfo.seo.description,
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
+
 };
 
 interface RootLayoutProps {
@@ -72,7 +59,7 @@ interface RootLayoutProps {
 const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${montserrat.variable} ${jetbrainsMono.variable} antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"
@@ -92,7 +79,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
               },
               "email": personalInfo.personal.email,
               "telephone": personalInfo.personal.phone,
-              "url": "https://owaisiqbal.dev",
+              "url": myUrl,
               "sameAs": [
                 personalInfo.social.linkedin,
                 personalInfo.social.github

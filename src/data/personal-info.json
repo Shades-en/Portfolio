@@ -405,8 +405,7 @@
   "seo": {
     "title": "Owais Iqbal - AI/ML Engineer & Full-Stack Developer",
     "description": "Associate Software Engineer at Lowe's specializing in AI-driven automation, MicroFrontend architecture, and accessibility technology. Expert in Python, React.js, and cloud technologies.",
-    "keywords": ["Owais Iqbal", "AI Engineer", "Full Stack Developer", "Python", "React", "Machine Learning", "Accessibility Technology", "Lowe's", "Software Engineer", "Bangalore"],
-    "ogImage": "/og-image.jpg",
-    "twitterHandle": "@owaisiqbal"
+    "keywords": ["Owais Iqbal", "AI Engineer", "Full Stack Developer", "Python", "React", "Machine Learning", "Accessibility Technology", "Lowe's", "Software Engineer", "Bangalore", "Generative AI", "Ramaiah Institute of Technology", "Zebra Technologies", "Unisys", "Presidency"],
+    "ogImage": "/owais-profile2.png"
   }
 }
