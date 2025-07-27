@@ -95,8 +95,14 @@ export default {
 				}
 			},
 			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				"accordion-down": "accordion-down 0.2s ease-out",
+				"accordion-up": "accordion-up 0.2s ease-out",
+				"caret-blink": "caret-blink 1.25s ease-out infinite",
+				"fade-in-up": "fadeInUp 0.6s ease-out both",
+				"delay-2000": "2s",
+				"delay-4000": "4s",
+				"duration-8000": "8s",
+				"duration-12000": "12s",
 			}
 		}
 	},
