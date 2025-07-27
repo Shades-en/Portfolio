@@ -123,9 +123,9 @@ export default function Error({ error, reset }: ErrorProps) {
         {/* Footer Message */}
         <div className="mt-8 text-sm text-muted-foreground">
           <p>
-            Don't worry, even the most robust systems encounter errors sometimes. 
+            Don&apos;t worry, even the most robust systems encounter errors sometimes. 
             <br className="hidden sm:inline" />
-            We're constantly improving to provide you with the best experience! 🛠️
+            We&apos;re constantly improving to provide you with the best experience! 
           </p>
         </div>
       </div>

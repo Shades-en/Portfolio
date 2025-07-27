@@ -38,8 +38,7 @@ export default function NotFound() {
             Page <span className="gradient-text">Not Found</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Looks like you've ventured into uncharted digital territory. The page you're looking for 
-            doesn't exist in this dimension of the web.
+            Looks like you&apos;ve ventured into uncharted digital territory. The page you&apos;re looking for doesn&apos;t exist in this digital realm.
           </p>
         </div>
 
@@ -103,7 +102,7 @@ export default function NotFound() {
           <p>
             Lost in the matrix? No worries, even the best developers encounter 404s. 
             <br className="hidden sm:inline" />
-            Let's get you back on track! 🚀
+            Let&apos;s get you back on track! 🚀
           </p>
         </div>
       </div>
