@@ -1,9 +1,9 @@
 // Server Component - No 'use client' directive for SEO benefits
 import React from 'react';
-import { Award, Calendar, ExternalLink, CheckCircle } from 'lucide-react';
+import { Award, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import CertificatesSection from './CertificatesSection';
 
 interface Certificate {
   readonly url: string;
@@ -70,7 +70,7 @@ const CertificationCard: React.FC<CertificationCardProps> = ({ cert, index }) =>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge variant="outline" className="text-xs bg-primary/10 cursor-pointer">
-                    +{cert.skills.length - 3} more
+                +{cert.skills.length - 3} more
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent side="top" align="start" className="w-48 p-3">
@@ -92,59 +92,7 @@ const CertificationCard: React.FC<CertificationCardProps> = ({ cert, index }) =>
       </div>
 
       {/* Certificates */}
-      <div className="pt-4 mt-2 border-t border-border/50">
-        {cert.certificates && cert.certificates.length > 0 ? (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-xs text-muted-foreground">
-              <CheckCircle size={14} className="mr-1 text-primary" />
-              <span>
-                {cert.certificates.length} certificates
-              </span>
-            </div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-6 px-2 text-xs hover:bg-primary/10 hover:text-primary">
-                    <ExternalLink size={12} className="mr-1" />
-                    View All
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" align="end" className="w-64 p-3">
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-foreground mb-2">Certificates:</div>
-                    {cert.certificates.map((certificate) => (
-                      <div key={certificate.credentialId} className="flex items-center justify-between py-1">
-                        <span className="text-xs text-muted-foreground truncate max-w-[180px]" title={certificate.title}>
-                          {certificate.title}
-                        </span>
-                        <a
-                          href={certificate.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="ml-2 text-accent hover:text-accent/80 transition-colors"
-                        >
-                          <ExternalLink size={12} />
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-xs text-muted-foreground">
-              <CheckCircle size={14} className="mr-1 text-primary" />
-              Certificate available
-            </div>
-            <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">
-              <ExternalLink size={12} className="mr-1" />
-              Verify
-            </Button>
-          </div>
-        )}
-      </div>
+      <CertificatesSection certificates={cert.certificates} />
     </div>
   );
 };
