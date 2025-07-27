@@ -130,7 +130,3 @@ The portfolio includes a fully functional contact form. To enable email function
    ```
    RESEND_API_KEY=your_api_key_here
    ```
-
-## 🎨 Customization
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
