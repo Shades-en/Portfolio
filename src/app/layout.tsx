@@ -28,6 +28,13 @@ export const metadata: Metadata = {
   authors: [{ name: personalInfo.personal.name, url: personalInfo.social.linkedin.url }],
   creator: personalInfo.personal.name,
   publisher: personalInfo.personal.name,
+  icons: {
+    icon: personalInfo.seo.icon.icon,
+    apple: personalInfo.seo.icon.appleTouchIcon
+  },
+  verification: {
+    google: personalInfo.seo.googleSiteVerification,
+  },
   formatDetection: {
     email: false,
     address: false,
@@ -46,8 +53,6 @@ export const metadata: Metadata = {
     siteName: personalInfo.seo.title,
     images: [{
       url: personalInfo.seo.ogImage,
-      width: 1200,
-      height: 630,
       alt: personalInfo.seo.title,
     }],
   },
