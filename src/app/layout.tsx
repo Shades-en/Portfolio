@@ -106,6 +106,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
                 "Cloud Computing",
                 "Accessibility Technology"
               ],
+              "keywords": personalInfo.seo.keywords,
               "alumniOf": {
                 "@type": "EducationalOrganization",
                 "name": personalInfo.education.institution
