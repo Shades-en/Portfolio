@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     url: myUrl,
     title: personalInfo.seo.title,
     description: personalInfo.seo.description,
-    siteName: personalInfo.seo.title,
+    siteName: personalInfo.personal.name,
     images: [{
       url: personalInfo.seo.ogImage,
       alt: personalInfo.seo.title,
