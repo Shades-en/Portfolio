@@ -13,7 +13,7 @@ trigger: always_on
 
 # Styling & UI
 - Use Tailwind CSS for styling.
-- Use Shadcn UI for components.
+- Use Radix UI for components.
 
 # Data Fetching & Forms
 - Use TanStack Query (react-query) for frontend data fetching.

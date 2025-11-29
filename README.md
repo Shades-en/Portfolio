@@ -41,7 +41,6 @@ This portfolio represents a comprehensive showcase of professional experience, t
 - **Tailwind CSS** - Utility-first CSS framework
 
 ### **UI & Components**
-- **Shadcn UI** - Modern component library
 - **Lucide React** - Beautiful icon library
 - **Radix UI** - Accessible component primitives
 - **React Hook Form** - Form handling and validation
