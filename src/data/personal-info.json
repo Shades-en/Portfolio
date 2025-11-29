@@ -49,11 +49,11 @@
     ],
     "ai_ml": [
       { "name": "HuggingFace", "experience": "1+ year", "context": "Multimodal AI, fine-tuning", "category": "AI/ML", "icon": "https://huggingface.co/front/assets/huggingface_logo-noborder.svg" },
-      { "name": "Langchain", "experience": "2+ year", "context": "RAG systems, AI agents", "category": "AI/ML", "icon": "https://python.langchain.com/img/brand/wordmark.png" },
-      { "name": "OpenAI SDK", "experience": "1+ year", "context": "GPT integration, automation", "category": "AI/ML", "icon": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/openai/openai-original.svg" },
-      { "name": "Google ADK", "experience": "Current", "context": "Enterprise AI solutions", "category": "AI/ML", "icon": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" },
+      { "name": "Langchain", "experience": "2+ year", "context": "RAG systems, AI agents", "category": "AI/ML", "icon": "https://cdn.jsdelivr.net/npm/simple-icons@14.11.0/icons/langchain.svg" },
+      { "name": "OpenAI SDK", "experience": "1+ year", "context": "GPT integration, automation", "category": "AI/ML", "icon": "https://cdn.jsdelivr.net/npm/simple-icons@14.11.0/icons/openai.svg" },
+      { "name": "Google ADK", "experience": "Current", "context": "Enterprise AI solutions", "category": "AI/ML", "icon": "https://google.github.io/adk-docs/assets/agent-development-kit.png" },
       { "name": "Agents SDK", "experience": "Current", "context": "AI agent development", "category": "AI/ML", "icon": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" },
-      { "name": "Arize AI", "experience": "Current", "context": "ML monitoring, tracking", "category": "AI/ML", "icon": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" }
+      { "name": "Arize AI", "experience": "Current", "context": "ML monitoring, tracking", "category": "AI/ML", "icon": "https://cdn.pagerduty.com/wp-content/uploads/2022/08/arize-logo-pink-icon-black-text.svg" }
     ],
     "backend": [
       { "name": "FastAPI", "experience": "2+ year", "context": "High-performance APIs", "category": "Backend", "icon": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/fastapi/fastapi-original.svg" },

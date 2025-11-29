@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 
+// https://cdn.jsdelivr.net/npm/simple-icons@14.11.0/icons/ - For ICONS
 interface TechnologyIconProps {
   src: string;
   alt: string;

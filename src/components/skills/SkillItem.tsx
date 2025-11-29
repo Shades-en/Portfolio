@@ -40,27 +40,27 @@ const SkillItem: React.FC<SkillItemProps> = ({ skill }) => {
 
   return (
     <div className="flex items-center justify-between py-1.5 px-2 rounded-md bg-secondary/30 hover:bg-primary/10 transition-colors duration-200">
-      <div className="lg:flex items-center gap-2 min-w-0 flex-1">
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <TechnologyIcon
-            src={skill.icon || getFallbackIcon()}
-            alt={`${skill.name} icon`}
-            size={16}
-          />
-          <span className="font-normal md:font-medium text-foreground text-xs md:text-sm text-nowrap">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <TechnologyIcon
+          src={skill.icon || getFallbackIcon()}
+          alt={`${skill.name} icon`}
+          size={30}
+          className="p-1 bg-amber-50 rounded-full flex-shrink-0"
+        />
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="font-normal md:font-medium text-foreground text-xs md:text-sm text-nowrap flex-shrink-0">
             {skill.name}
           </span>
+          <span className="text-xs text-muted-foreground hidden sm:inline truncate">
+            {skill.context}
+          </span>
         </div>
-        <span className="text-xs text-muted-foreground hidden sm:inline">•</span>
-        <span className="text-xs text-muted-foreground hidden sm:inline truncate">
-          {skill.context}
-        </span>
       </div>
       <Badge 
         variant={getExperienceBadgeVariant(skill.experience)}
         className="text-xs flex items-center gap-1 px-1.5 py-0.5 ml-2 flex-shrink-0"
       >
-        <ExperienceIcon size={8} />
+        <ExperienceIcon size={15} />
         <span className="text-xs md:text-sm">
           {skill.experience.replace('+ years', 'y+').replace('+ year', 'y+')}
         </span>
