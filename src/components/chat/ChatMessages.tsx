@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Bot, User, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   readonly id: string;
@@ -19,7 +20,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     {
       id: '1',
       role: 'assistant',
-      content: 'Hey there! 👋 I\'m your AI assistant. I can help you explore my portfolio, discuss projects, dive into technical skills, and share my experience. What would you like to know?',
+      content: '# Hey there! 👋\n\nI\'m your AI assistant. I can help you explore my portfolio, discuss projects, dive into technical skills, and share my experience.\n\n**What would you like to know?**',
       timestamp: new Date(),
     },
     {
@@ -31,11 +32,21 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     {
       id: '3',
       role: 'assistant',
-      content: 'Great question! I have expertise across multiple domains:\n\n**AI/ML** - HuggingFace, Langchain, OpenAI SDK, Google ADK\n**Backend** - FastAPI, Node.js, Django, Flask, Spring Boot\n**Frontend** - React.js, Next.js, ThreeJS, HTML/CSS\n**Cloud & Databases** - Azure, Kubernetes, Docker, MongoDB, Redis\n**Languages** - Python, JavaScript, TypeScript, Java, C, SQL\n\nI\'m particularly passionate about AI/ML and full-stack development. Want to explore any specific area?',
+      content: '## Great question!\n\nI have expertise across multiple domains:\n\n### **AI/ML**\n- HuggingFace, Langchain, OpenAI SDK, Google ADK\n\n### **Backend**\n- FastAPI, Node.js, Django, Flask, Spring Boot\n\n### **Frontend**\n- React.js, Next.js, ThreeJS, HTML/CSS\n\n### **Cloud & Databases**\n- Azure, Kubernetes, Docker, MongoDB, Redis\n\n### **Languages**\n- Python, JavaScript, TypeScript, Java, C, SQL\n\nI\'m particularly passionate about **AI/ML** and **full-stack development**. Want to explore any specific area?',
       timestamp: new Date(Date.now() - 30000),
     },
-  ]
+  ],
 }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = (): void => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -69,9 +80,15 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                   }`}
                   style={message.role === 'user' ? { background: 'linear-gradient(to bottom, hsla(190, 50%, 32%, 0.8), hsla(190, 55%, 20%, 0.4))', color: 'hsl(210, 40%, 98%)' } : {}}
                 >
-                  <p className="text-base leading-relaxed whitespace-pre-wrap break-words">
-                    {message.content}
-                  </p>
+                  {message.role === 'assistant' ? (
+                    <div className="text-base leading-relaxed prose prose-invert max-w-none">
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="text-base leading-relaxed whitespace-pre-wrap break-words">
+                      {message.content}
+                    </p>
+                  )}
                 </div>
                 
                 {message.role === 'assistant' && (
@@ -114,6 +131,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
             </div>
           ))
         )}
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );
