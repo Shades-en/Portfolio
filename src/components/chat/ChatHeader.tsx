@@ -41,7 +41,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ title = 'New Chat' }) => {
               onBlur={handleSave}
               onKeyDown={handleKeyDown}
               autoFocus
-              className="bg-transparent text-white text-lg outline-none border-b border-primary/50 focus:border-primary px-1"
+              className="bg-transparent text-white text-lg outline-none focus:border-primary px-1"
             />
           ) : (
             <span onDoubleClick={handleDoubleClick} className="cursor-text text-white text-lg">
@@ -57,7 +57,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ title = 'New Chat' }) => {
                 <ChevronDown size={20} className="group-hover:text-primary transition-colors" />
               </button>
             </DropdownMenu.Trigger>
-            <DropdownMenu.Content className="bg-secondary/95 border border-primary/20 rounded-lg shadow-lg z-50 w-40" sideOffset={8}>
+            <DropdownMenu.Content className="bg-[var(--chat-foreground)] border border-primary/20 rounded-lg shadow-lg z-50 w-40" sideOffset={8}>
               <DropdownMenu.Item className="flex items-center gap-3 px-4 py-2.5 text-foreground hover:bg-primary/10 transition-colors text-sm rounded-md cursor-pointer outline-none">
                 <Star size={16} className="text-muted-foreground" />
                 <span>Star</span>

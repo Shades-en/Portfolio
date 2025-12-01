@@ -73,6 +73,10 @@ All colors MUST be HSL for consistency.
     --glass-bg: hsla(222, 84%, 4.9%, 0.9);
     --glass-border: hsla(197, 92%, 56%, 0.2);
     --grid-color: hsla(197, 92%, 56%, 0.05);
+    /* Chat gradients */
+    --chat-foreground: hsl(200, 30%, 6%);
+    --chat-background: hsl(200, 30%, 7%);
+    --chat-message: linear-gradient(to bottom, hsla(190, 50%, 32%, 0.8), hsla(190, 55%, 20%, 0.4));
 
     /* Shadows with electric blue glow */
     --shadow-glow: 0 0 40px hsla(197, 92%, 56%, 0.3);

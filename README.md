@@ -129,3 +129,11 @@ The portfolio includes a fully functional contact form. To enable email function
    ```
    RESEND_API_KEY=your_api_key_here
    ```
+
+## TODO:
+- [ ] Add chat input style change
+- [ ] Add new chat page style change
+- [ ] Add chat message suggestions styling change
+- [ ] Change markdown formatting and spacing
+- [ ] Empty chat history page
+- [ ] Dialog boxes for clear chat history and delete chat

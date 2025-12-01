@@ -19,7 +19,9 @@ export default function ChatPage(): React.ReactElement {
   return (
     <>
       <ChatSidebar onChatSelect={setActiveMessages} />
-      <div className="flex-1 flex flex-col" style={{ background: 'linear-gradient(135deg, hsl(200, 60%, 8%) 0%, hsl(200, 65%, 4%) 50%, hsl(200, 55%, 6%) 100%)' }}>
+      <div
+        className="flex-1 flex flex-col bg-[var(--chat-foreground)]"
+      >
         <ChatHeader />
         <ChatMessages messages={activeMessages} />
         <ChatInput />
