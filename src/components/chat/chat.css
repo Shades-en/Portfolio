@@ -1,0 +1,86 @@
+/* Hide scrollbar by default, show only when hovering and content overflows */
+textarea {
+  scrollbar-width: none;
+}
+
+textarea::-webkit-scrollbar {
+  display: none;
+}
+
+textarea:hover {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(197, 92%, 56%) transparent;
+}
+
+textarea:hover::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+}
+
+textarea:hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea:hover::-webkit-scrollbar-thumb {
+  background-color: hsl(197, 92%, 56%);
+  border-radius: 3px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+textarea:hover::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(197, 92%, 46%);
+}
+
+/* 3D Neon Cube for new chat greeting */
+.chat-cube-wrap {
+  --cube-size: 96px;
+  --half: calc(var(--cube-size) / 2);
+  width: var(--cube-size);
+  height: var(--cube-size);
+  perspective: 800px;
+  pointer-events: none;
+}
+
+.chat-cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: cube-rotate 16s linear infinite;
+  filter: drop-shadow(0 6px 18px color-mix(in hsl, var(--primary) 25%, transparent));
+}
+
+.chat-face {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, color-mix(in hsl, var(--primary) 10%, transparent), color-mix(in hsl, var(--accent) 10%, transparent));
+  border: 1px solid color-mix(in hsl, var(--primary) 65%, transparent);
+  box-shadow:
+    0 0 18px color-mix(in hsl, var(--primary) 20%, transparent),
+    inset 0 0 24px color-mix(in hsl, var(--accent) 12%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.chat-front  { transform: translateZ(var(--half)); }
+.chat-back   { transform: rotateY(180deg) translateZ(var(--half)); }
+.chat-right  { transform: rotateY(90deg) translateZ(var(--half)); }
+.chat-left   { transform: rotateY(-90deg) translateZ(var(--half)); }
+.chat-top    { transform: rotateX(90deg) translateZ(var(--half)); }
+.chat-bottom { transform: rotateX(-90deg) translateZ(var(--half)); }
+
+@keyframes cube-rotate {
+  0%   { transform: rotateX(-18deg) rotateY(0deg); }
+  50%  { transform: rotateX(18deg) rotateY(180deg); }
+  100% { transform: rotateX(-18deg) rotateY(360deg); }
+}
+
+.chat-ai-markdown {
+  p { margin: 0 0 0.3rem; }
+  h1 { margin: 1rem 0 0.5rem; }
+  h2 { margin: 0.875rem 0 0.5rem; }
+  h3 { margin: 0.75rem 0 0.4rem; }
+  h4 { margin: 0.625rem 0 0.35rem; }
+  h5 { margin: 0.5rem 0 0.3rem; }
+  h6 { margin: 0.375rem 0 0.25rem; }
+}

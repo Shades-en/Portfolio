@@ -1,6 +1,7 @@
 import React from "react";
 import { User, Copy, ThumbsUp, ThumbsDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import './chat.css';
 
 interface Message {
   readonly id: string;
@@ -26,7 +27,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => {
         }`}
       >
         <div
-          className={`px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-md ${
+          className={`px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-sm ${
             message.role === "user"
               ? "rounded-br-none"
               : "text-foreground rounded-bl-none"
@@ -36,16 +37,17 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => {
               ? {
                   background: 'var(--chat-message)',
                   color: "hsl(210, 40%, 98%)",
+                  border: '1px solid hsl(var(--primary) / 0.12)'
                 }
               : {}
           }
         >
           {message.role === "assistant" ? (
-            <div className="text-base leading-relaxed prose prose-invert max-w-none">
+            <div className="text-sm leading-relaxed prose prose-invert max-w-none chat-ai-markdown">
               <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           ) : (
-            <p className="text-base leading-relaxed whitespace-pre-wrap break-words">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
               {message.content}
             </p>
           )}

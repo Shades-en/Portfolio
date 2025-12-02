@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 interface ChatItem {
   readonly id: string;
@@ -12,7 +13,7 @@ interface ChatListProps {
   readonly chat: ChatItem;
   readonly isActive: boolean;
   readonly onClick: (chat: ChatItem) => void;
-  readonly onDelete?: (id: string, e: React.MouseEvent) => void;
+  readonly onDelete?: (id: string, e?: React.MouseEvent) => void;
   readonly showTimestamp?: boolean;
   readonly subtitle?: string;
   readonly variant?: 'default' | 'search';
@@ -31,7 +32,7 @@ const ChatList: React.FC<ChatListProps> = ({
     const iso = new Date(value).toISOString();
     return iso.slice(11, 16); // HH:MM in UTC
   };
-  const baseWrapper = `group relative flex items-center px-3 py-1.5 rounded-lg transition-all duration-200 ${
+  const baseWrapper = `group w-[95%] relative flex items-center px-3 py-1.5 rounded-lg transition-all duration-200 ${
     isActive
       ? 'bg-slate-700/60 border border-slate-600 shadow-lg shadow-slate-900'
       : 'hover:bg-slate-800/40 border border-transparent hover:border-slate-700'
@@ -46,7 +47,7 @@ const ChatList: React.FC<ChatListProps> = ({
       >
         <div className="relative min-w-0">
           <p
-            className="text-sm text-white truncate whitespace-nowrap font-medium leading-tight"
+            className="text-xs text-white truncate whitespace-nowrap font-medium leading-tight"
             style={{
               WebkitMaskImage:
                 'linear-gradient(to right, #000 0%, #000 calc(100% - 2.5rem), rgba(0,0,0,0.45) calc(100% - 2rem), rgba(0,0,0,0.15) calc(100% - 1rem), transparent 100%)',
@@ -72,26 +73,42 @@ const ChatList: React.FC<ChatListProps> = ({
             </p>
           )}
           {onDelete && (
-            <button
-              onClick={(e) => onDelete(chat.id, e)}
-              className="ml-1 inline-flex h-4 w-4 p-0 items-center justify-center hover:bg-red-900/30 rounded transition-colors duration-200 hidden group-hover:inline-flex group-focus-within:inline-flex"
-              title="Delete"
-              type="button"
-            >
-              <Trash2 size={14} className="text-red-500" />
-            </button>
+            <ConfirmDialog
+              trigger={
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="ml-1 inline-flex h-4 w-4 p-0 items-center justify-center hover:bg-red-900/30 rounded transition-colors duration-200 hidden group-hover:inline-flex group-focus-within:inline-flex"
+                  title="Delete"
+                  type="button"
+                >
+                  <Trash2 size={14} className="text-red-500" />
+                </button>
+              }
+              title="Delete chat?"
+              description="This action cannot be undone."
+              confirmLabel="Delete"
+              onConfirm={() => onDelete(chat.id)}
+            />
           )}
         </div>
       ) : (
         onDelete && (
-          <button
-            onClick={(e) => onDelete(chat.id, e)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-red-900/30 rounded-lg transition-all duration-200 hover:scale-110"
-            title="Delete"
-            type="button"
-          >
-            <Trash2 size={12} className="text-red-500" />
-          </button>
+          <ConfirmDialog
+            trigger={
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-red-900/30 rounded-lg transition-all duration-200 hover:scale-110"
+                title="Delete"
+                type="button"
+              >
+                <Trash2 size={12} className="text-red-500" />
+              </button>
+            }
+            title="Delete chat?"
+            description="This action cannot be undone."
+            confirmLabel="Delete"
+            onConfirm={() => onDelete(chat.id)}
+          />
         )
       )}
     </div>

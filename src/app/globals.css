@@ -73,10 +73,25 @@ All colors MUST be HSL for consistency.
     --glass-bg: hsla(222, 84%, 4.9%, 0.9);
     --glass-border: hsla(197, 92%, 56%, 0.2);
     --grid-color: hsla(197, 92%, 56%, 0.05);
-    /* Chat gradients */
-    --chat-foreground: hsl(200, 30%, 6%);
-    --chat-background: hsl(200, 30%, 7%);
-    --chat-message: linear-gradient(to bottom, hsla(190, 50%, 32%, 0.8), hsla(190, 55%, 20%, 0.4));
+    /* Chat background (matte): subtle grain + soft vignette over a deep dark gradient */
+    --chat-background:
+      radial-gradient(1200px 600px at 50% 0%, hsla(0, 0%, 100%, 0.025) 0%, hsla(0, 0%, 100%, 0) 60%),
+      repeating-linear-gradient(0deg, hsla(0, 0%, 100%, 0.012) 0px, hsla(0, 0%, 100%, 0.012) 1px, transparent 1px, transparent 2px),
+      linear-gradient(135deg, hsl(222, 34%, 9%) 0%, hsl(222, 38%, 8%) 100%);
+    /* Alternate matte variant: angled hatch grain + subtle cyan glow vignette */
+    --chat-background-alt:
+      radial-gradient(1000px 600px at 80% 20%, hsla(197, 92%, 56%, 0.035) 0%, hsla(197, 92%, 56%, 0) 60%),
+      repeating-linear-gradient(45deg, hsla(0, 0%, 100%, 0.008) 0px, hsla(0, 0%, 100%, 0.008) 1px, transparent 1px, transparent 3px),
+      linear-gradient(125deg, hsl(222, 34%, 10%) 0%, hsl(222, 38%, 9%) 100%);
+    --chat-foreground: hsl(222, 47%, 4%);
+    /* Message bubble variant: subtle primary tint over chat background (low glow) */
+    --chat-message:
+      linear-gradient(180deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.091) 100%),
+      var(--chat-background);
+    /* Alternate message variant built over the alt background (low glow) */
+    --chat-message-alt:
+      linear-gradient(180deg, hsl(var(--primary) / 0.42) 0%, hsl(var(--primary) / 0.91) 100%),
+      var(--chat-background-alt);
 
     /* Shadows with electric blue glow */
     --shadow-glow: 0 0 40px hsla(197, 92%, 56%, 0.3);

@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Paperclip, Plus } from 'lucide-react';
+import { ArrowUpRight, Paperclip, Plus } from 'lucide-react';
 import type { ChangeEvent } from 'react';
-import './chat-input.css';
+import RotatingText from '@/components/animation/RotatingText';
+import './chat.css';
 
 interface ChatInputProps {
   readonly onSendMessage?: (message: string) => void;
   readonly isLoading?: boolean;
+  readonly newChat?: boolean;
+  readonly userName?: string;
 }
 
 const QUICK_SUGGESTIONS = [
@@ -19,11 +22,22 @@ const QUICK_SUGGESTIONS = [
 
 const ChatInput: React.FC<ChatInputProps> = ({ 
   onSendMessage,
-  isLoading = false 
+  isLoading = false,
+  newChat = false,
+  userName = 'there'
 }) => {
   const [message, setMessage] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const questionTopics = [
+    'who I am',
+    'my projects',
+    'my experience',
+    'my skills',
+    'my accomplishments'
+  ]
 
   const handleSend = (): void => {
     if (message.trim()) {
@@ -55,28 +69,38 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
+  const handleAttachClick = (): void => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (_e: ChangeEvent<HTMLInputElement>): void => {
+    // hook for future file handling
+  };
+
 
   return (
-    <div className="p-4">
-      <div className="max-w-4xl mx-auto space-y-4">
-        {/* Quick Suggestions */}
-        {showSuggestions && !message && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 animate-fade-in-up">
-            {QUICK_SUGGESTIONS.map((suggestion) => (
-              <button
-                key={suggestion}
-                onClick={() => handleSuggestion(suggestion)}
-                className="flex items-center gap-2 px-4 py-3 rounded-lg border border-primary/20 bg-secondary/30 hover:bg-primary/10 text-foreground text-sm transition-all duration-200 hover:border-primary/50 group"
-              >
-                <Plus size={16} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="text-left">{suggestion}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Input Area */}
-        <div className="space-y-3">
+    <div className={`w-7/12 mx-auto space-y-4 absolute ${newChat ? 'inset-x-0 top-1/2 -translate-y-[65%] transform' : 'bottom-2 left-0 right-0'}`}>
+      {newChat && (
+        <div className='flex items-center gap-2 w-full justify-center my-10'>
+          <h1 className="text-4xl font-light"> Let's talk about</h1>
+          <RotatingText
+            texts={questionTopics}
+            mainClassName="px-2 sm:px-2 md:px-3 text-4xl transition-all duration-1000 font-regular bg-primary/90 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
+            staggerFrom={"last"}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "-120%" }}
+            staggerDuration={0.025}
+            splitBy='words'
+            splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
+            transition={{ type: "spring", damping: 30, stiffness: 400, duration: 0.5 }}
+            rotationInterval={2000}
+          />
+        </div>
+      )}
+      <div className="px-4 py-3 rounded-[25px] h-fit border border-primary/20 bg-[var(--chat-foreground)] focus-within:border-primary/50 focus-within:shadow-lg focus-within:shadow-primary/20 transition-all flex flex-col">
+        <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+        <div>
           <textarea
             ref={textareaRef}
             value={message}
@@ -87,30 +111,47 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 handleSend();
               }
             }}
-            placeholder="Message me anything..."
-            className="w-full px-4 py-3 rounded-xl bg-secondary/40 border border-primary/20 text-foreground placeholder-muted-foreground resize-none focus:outline-none focus:border-primary/50 focus:bg-secondary/60 focus:shadow-lg focus:shadow-primary/20 transition-all duration-200 overflow-y-hidden hover:overflow-y-auto"
+            placeholder="What would you like to know?"
+            className="w-full bg-transparent px-2 pt-2 text-foreground placeholder-muted-foreground resize-none outline-none leading-6 max-h-[384px] overflow-y-auto"
             rows={1}
             disabled={isLoading}
-            style={{ minHeight: '40px', maxHeight: '432px' }}
           />
-          <div className="flex items-center justify-between">
-            <button
-              className="flex-shrink-0 p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all duration-200"
-              title="Attach file"
-            >
-              <Paperclip size={18} />
-            </button>
-            <button
-              onClick={handleSend}
-              disabled={!message.trim() || isLoading}
-              className="flex-shrink-0 p-2 rounded-lg bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-background transition-all duration-200 hover:shadow-lg hover:shadow-primary/50 disabled:shadow-none transform hover:scale-105 disabled:scale-100"
-              title="Send message"
-            >
-              <Send size={18} />
-            </button>
-          </div>
+        </div>
+        <div className="h-14 flex items-center justify-between gap-2">
+          <button
+            onClick={handleAttachClick}
+            className="shrink-0 h-9 w-9 grid place-items-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+            title="Attach file"
+            type="button"
+          >
+            <Paperclip size={18} />
+          </button>
+          <button
+            onClick={handleSend}
+            disabled={!message.trim() || isLoading}
+            className="shrink-0 h-9 w-9 grid place-items-center rounded-xl bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-background transition-all hover:shadow-lg hover:shadow-primary/50 disabled:shadow-none"
+            title="Send message"
+            type="button"
+          >
+            <ArrowUpRight size={18} />
+          </button>
         </div>
       </div>
+      {/* Quick Suggestions */}
+      {showSuggestions && newChat && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex w-full justify-center">
+          {QUICK_SUGGESTIONS.map((suggestion) => (
+            <button
+              key={suggestion}
+              onClick={() => handleSuggestion(suggestion)}
+              className="flex items-center gap-2 px-4 py-3 text-foreground text-sm transition-all duration-200 hover:border-primary/50 group"
+            >
+              <Plus size={16} className="text-primary" />
+              <span className="text-center hover:text-primary transition-colors duration-200">{suggestion}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

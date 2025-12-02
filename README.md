@@ -131,9 +131,5 @@ The portfolio includes a fully functional contact form. To enable email function
    ```
 
 ## TODO:
-- [ ] Add chat input style change
-- [ ] Add new chat page style change
-- [ ] Add chat message suggestions styling change
-- [ ] Change markdown formatting and spacing
-- [ ] Empty chat history page
-- [ ] Dialog boxes for clear chat history and delete chat
+- [ ] Organise code in a better manner
+- [ ] Make it Responsive

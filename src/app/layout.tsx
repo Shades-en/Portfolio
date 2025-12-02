@@ -14,11 +14,15 @@ const myUrl = process.env.NEXT_PUBLIC_SITE_URL || publicUrl;
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'block',
+  preload: true,
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-jetbrains-mono',
+  display: 'block',
+  preload: true,
 });
 
 export const metadata: Metadata = {

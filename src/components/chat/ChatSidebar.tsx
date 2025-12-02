@@ -5,53 +5,34 @@ import { Search, Trash2, PanelLeftClose, PanelLeftOpen, PenTool } from 'lucide-r
 import Image from 'next/image';
 import * as Dialog from '@radix-ui/react-dialog';
 import ChatListItem from './ChatList';
+import { Montserrat } from 'next/font/google';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
+const montserrat = Montserrat({ subsets: ['latin'], weight: '500' });
 interface Message {
   readonly id: string;
   readonly role: 'user' | 'assistant';
   readonly content: string;
   readonly timestamp: Date;
 }
-
 interface ChatHistory {
   readonly id: string;
   readonly title: string;
   readonly timestamp: Date;
   readonly isActive?: boolean;
-  readonly messages?: readonly Message[];
+  readonly messages?: Message[];
   readonly starred?: boolean;
 }
-
 interface ChatSidebarProps {
-  readonly onChatSelect?: (messages: readonly Message[]) => void;
+  onChatSelect?: (messages: Message[]) => void;
+  messages?: Message[];
 }
 
-const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
-  const defaultMessages: readonly Message[] = [
-    {
-      id: '1',
-      role: 'assistant',
-      content: '# Hey there! 👋\n\nI\'m your AI assistant. I can help you explore my portfolio, discuss projects, dive into technical skills, and share my experience.\n\n**What would you like to know?**',
-      timestamp: new Date(),
-    },
-    {
-      id: '2',
-      role: 'user',
-      content: 'What are your main technical skills?',
-      timestamp: new Date(Date.now() - 60000),
-    },
-    {
-      id: '3',
-      role: 'assistant',
-      content: '## Great question!\n\nI have expertise across multiple domains:\n\n### **AI/ML**\n- HuggingFace, Langchain, OpenAI SDK, Google ADK\n\n### **Backend**\n- FastAPI, Node.js, Django, Flask, Spring Boot\n\n### **Frontend**\n- React.js, Next.js, ThreeJS, HTML/CSS\n\n### **Cloud & Databases**\n- Azure, Kubernetes, Docker, MongoDB, Redis\n\n### **Languages**\n- Python, JavaScript, TypeScript, Java, C, SQL\n\nI\'m particularly passionate about **AI/ML** and **full-stack development**. Want to explore any specific area?',
-      timestamp: new Date(Date.now() - 30000),
-    },
-  ];
-
+const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => {
   const [chatHistory, setChatHistory] = useState<readonly ChatHistory[]>([
-    { id: '1', title: 'Portfolio Optimization Optimization Optimization Optimization', timestamp: new Date(Date.now() - 3600000), isActive: true, messages: defaultMessages, starred: false },
+    { id: '1', title: 'Portfolio Optimization Optimization Optimization Optimization', timestamp: new Date(Date.now() - 3600000), isActive: false, messages: messages, starred: false },
     { id: '2', title: 'AI/ML Technologies', timestamp: new Date(Date.now() - 86400000), starred: true },
-    { id: '3', title: 'Project Discussion Technologies Technologies Technologies Technologies', timestamp: new Date(Date.now() - 172800000), starred: true },
+    { id: '3', title: 'Project Discussion Technologies Technologies Technologies Technologies', timestamp: new Date(Date.now() - 172800000), starred: true, isActive: true },
     { id: '4', title: 'Backend Architecture', timestamp: new Date(Date.now() - 259200000), starred: false },
     { id: '5', title: 'Frontend Best Practices', timestamp: new Date(Date.now() - 345600000), starred: false },
   ]);
@@ -65,7 +46,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
   );
 
   const starredChats = chatHistory.filter(chat => chat.starred);
-  const recentChats = chatHistory.filter(chat => !chat.starred);
+  const recentChats = chatHistory;
 
   const handleNewChat = (): void => {
     const newChat: ChatHistory = {
@@ -84,8 +65,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
     onChatSelect?.(chat.messages || []);
   };
 
-  const handleDeleteChat = (id: string, e: React.MouseEvent): void => {
-    e.stopPropagation();
+  const handleDeleteChat = (id: string, e?: React.MouseEvent): void => {
+    if (e) e.stopPropagation();
     setChatHistory(chatHistory.filter(chat => chat.id !== id));
   };
 
@@ -93,6 +74,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
     const activeChat = chatHistory.find(c => c.isActive);
     if (activeChat) {
       onChatSelect?.(activeChat.messages || []);
+    } else {
+      handleNewChat();
     }
   }, []);
 
@@ -115,20 +98,28 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
     return date.toLocaleDateString();
   };
 
+  const logoSize = 16;
+  const shadesLogoSize = 24;
+
+  const handleClearHistory = (): void => {
+    setChatHistory([]);
+    onChatSelect?.([]);
+  };
+
   return (
     <div
       className={`relative overflow-hidden border-r flex flex-col bg-[var(--chat-foreground)] h-full transition-all duration-200 ${
-        isCollapsed ? 'w-16' : 'w-72'
+        isCollapsed ? 'w-16' : 'w-64'
       }`}
     >
       <div className="px-4 pt-4 pb-0 mt-2">
         <div className="flex items-center justify-between gap-3 relative top-0 h-5">
-          <div className={`flex items-center gap-3 absolute left-0 ${opacityAnimationClasses}`}>
-            <div className="p-0.5 bg-amber-50 rounded-lg flex-shrink-0">
-              <Image src="/web-app-manifest.png" alt="Shades Icon" width={28} height={28} className="rounded-md" />
+          <div className={`flex items-center gap-2 absolute left-0 ${opacityAnimationClasses}`}>
+            <div className="p-0.5 pr-0 flex-shrink-0">
+              <Image src="/white-logo/android-chrome-512x512.png" alt="Shades Icon" width={shadesLogoSize} height={shadesLogoSize} className="rounded-md" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Shades</p>
+              <p className={`${montserrat.className} text-sm font-regular uppercase text-white`}>Shades</p>
             </div>
           </div>
           <div className="absolute right-0">
@@ -138,7 +129,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
                 className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-all duration-200 flex-shrink-0"
                 title="Expand sidebar"
               >
-                <PanelLeftOpen size={18} />
+                <PanelLeftOpen size={logoSize} />
               </button>
             ) : (
               <button
@@ -146,7 +137,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
                 className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-all duration-200 flex-shrink-0"
                 title="Collapse sidebar"
               >
-                <PanelLeftClose size={18} />
+                <PanelLeftClose size={logoSize} />
               </button>
             )}
           </div>
@@ -154,28 +145,28 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
       </div>
 
       <div className="relative top-5 left-0 flex-1">
-        <div className="w-72 transition-transform duration-300">
+        <div className="w-full transition-transform duration-300">
           <div className="h-full flex flex-col justify-center">
             <div className="p-4 py-1 border-b border-slate-800 h-24">
               <div className="flex flex-col gap-2 h-full">
                 <button onClick={handleNewChat} className="flex items-center gap-3 px-0 py-1.5 text-white hover:text-primary transition-colors duration-200 group">
                   <div className='pl-2'>
-                    <PenTool size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
+                    <PenTool size={logoSize} className="text-slate-400 group-hover:text-primary transition-colors" />
                   </div>
-                  <span className={`text-sm font-medium ${opacityAnimationClasses}`}>New chat</span>
+                  <span className={`text-xs font-medium whitespace-nowrap ${opacityAnimationClasses}`}>New Chat</span>
                 </button>
                 <Dialog.Root open={isSearchOpen} onOpenChange={setIsSearchOpen}>
                   <Dialog.Trigger asChild>
                     <button className="flex items-center gap-3 px-0 py-1.5 text-white hover:text-primary transition-colors duration-200 group outline-none">
                       <div className='pl-2'> 
-                        <Search size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
+                        <Search size={logoSize} className="text-slate-400 group-hover:text-primary transition-colors" />
                       </div>
-                      <span className={`text-sm font-medium ${opacityAnimationClasses}`}>Search chats</span>
+                      <span className={`text-xs font-medium whitespace-nowrap ${opacityAnimationClasses}`}>Search Chats</span>
                     </button>
                   </Dialog.Trigger>
                   <Dialog.Portal>
                     <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40" />
-                    <Dialog.Content className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--chat-foreground)] border border-primary/20 rounded-lg shadow-lg z-50 w-2/5 h-2/5 max-h-96 flex flex-col">
+                    <Dialog.Content className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--chat-foreground)] border border-primary/20 rounded-lg shadow-lg z-50 w-2/5 h-2/5 max-h-[60%] flex flex-col">
                       <div className="p-4 border-b border-slate-800">
                         <Dialog.Title className="text-lg font-semibold text-white mb-3">Search Chats</Dialog.Title>
                         <div className="relative">
@@ -197,10 +188,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
                               chat={chat}
                               isActive={!!chat.isActive}
                               onClick={() => setIsSearchOpen(false)}
-                              onDelete={(id, e) => {
-                                e.stopPropagation();
-                                handleDeleteChat(id, e);
-                              }}
+                              onDelete={(id) => handleDeleteChat(id)}
                               subtitle={formatTime(chat.timestamp)}
                               variant="search"
                             />
@@ -220,60 +208,40 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
               className="flex-1 overflow-y-auto no-scrollbar"
               style={{ background: 'linear-gradient(to bottom, hsl(222, 47%, 8%)/0, hsl(222, 47%, 4%))' }}
             >
-              <div className={`p-3 px-2 mt-4 ${opacityAnimationClasses}`}>
-                <div className='space-y-1.5'>
-                  {starredChats.length > 0 && (
-                    <>
-                      <div>
-                        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Starred</p>
-                      </div>
-                      {starredChats.map((chat) => (
-                        <ChatListItem
-                          key={chat.id}
-                          chat={chat}
-                          isActive={!!chat.isActive}
-                          onClick={() => handleChatClick(chat)}
-                          onDelete={(id, e) => {
-                            e.stopPropagation();
-                            handleDeleteChat(id, e);
-                          }}
-                          showTimestamp
-                        />
-                      ))}
-                    </>
-                  )}
-                </div>
-
-                <div className='mt-5 space-y-1.5'>
-                  {recentChats.length > 0 && (
-                    <>
-                      <div className={starredChats.length > 0 ? 'mt-3' : ''}>
-                        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1.5">Recents</p>
-                      </div>
-                      {recentChats.map((chat) => (
-                        <ChatListItem
-                          key={chat.id}
-                          chat={chat}
-                          isActive={!!chat.isActive}
-                          onClick={() => handleChatClick(chat)}
-                          onDelete={(id, e) => {
-                            e.stopPropagation();
-                            handleDeleteChat(id, e);
-                          }}
-                          showTimestamp
-                        />
-                      ))}
-                    </>
-                  )}
-                </div>
-                
-                {chatHistory.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-800/50 mb-3 flex items-center justify-center">
-                      <div className="w-6 h-6 rounded-full border-2 border-slate-700"></div>
+              <div className={`p-3 px-2 mt-2 space-y-5 ${opacityAnimationClasses}`}>
+                {starredChats.length > 0 && (
+                  <div className='space-y-1'>
+                    <div className='mb-3'>
+                      <p className="text-xs font-medium text-slate-400 tracking-wide">Starred</p>
                     </div>
-                    <p className="text-sm font-medium text-white mb-1">No conversations</p>
-                    <p className="text-xs text-slate-500">Start a new chat to begin</p>
+                    {starredChats.map((chat) => (
+                      <ChatListItem
+                        key={chat.id}
+                        chat={chat}
+                        isActive={!!chat.isActive}
+                        onClick={() => handleChatClick(chat)}
+                        onDelete={(id) => handleDeleteChat(id)}
+                        showTimestamp
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {recentChats.length > 0 && (
+                  <div className='space-y-1'>
+                    <div className='mb-3'>
+                      <p className="text-xs font-medium text-slate-400 tracking-wide">Recents</p>
+                    </div>
+                    {recentChats.map((chat) => (
+                      <ChatListItem
+                        key={chat.id}
+                        chat={chat}
+                        isActive={!!chat.isActive}
+                        onClick={() => handleChatClick(chat)}
+                        onDelete={(id) => handleDeleteChat(id)}
+                        showTimestamp
+                      />
+                    ))}
                   </div>
                 )}
               </div>
@@ -284,14 +252,22 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect }) => {
 
       <div className="p-4 border-t space-y-2" style={{ borderColor: 'hsl(197, 92%, 56%)/10' }}>
         {isCollapsed ? (
-          <div className="mt-auto w-8 h-8 rounded-lg flex items-center p-0.5 bg-amber-50 justify-center overflow-hidden">
-            <Image src="/web-app-manifest.png" alt="Shades" width={32} height={32} className="w-full h-full object-cover rounded-lg" />
+          <div className="mt-auto w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+            <Image src="/white-logo/android-chrome-512x512.png" alt="Shades logo" width={shadesLogoSize} height={shadesLogoSize} className="w-full h-full object-cover" />          
           </div>
         ) : (
-          <button className={`flex items-center gap-3 px-0 py-1.5 text-slate-400 hover:text-red-500 transition-colors duration-200 group ${opacityAnimationClasses}`}>
-            <Trash2 size={18} className="text-slate-400 group-hover:text-red-500 transition-colors" />
-            <span className="text-sm font-medium whitespace-nowrap">Clear history</span>
-          </button>
+          <ConfirmDialog
+            trigger={
+              <button className={`flex items-center gap-3 px-0 py-1.5 text-slate-400 hover:text-red-500 transition-colors duration-200 group ${opacityAnimationClasses}`}>
+                <Trash2 size={logoSize} className="text-slate-400 group-hover:text-red-500 transition-colors" />
+                <span className="text-xs font-medium whitespace-nowrap">Clear History</span>
+              </button>
+            }
+            title="Clear all chats?"
+            description="This will remove your entire chat history. Are you sure you want to proceed?"
+            confirmLabel="Clear"
+            onConfirm={handleClearHistory}
+          />
         )}
       </div>
     </div>
