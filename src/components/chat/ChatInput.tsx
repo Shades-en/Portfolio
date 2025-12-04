@@ -79,13 +79,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
 
   return (
-    <div className={`w-7/12 mx-auto space-y-4 absolute ${newChat ? 'inset-x-0 top-1/2 -translate-y-[65%] transform' : 'bottom-2 left-0 right-0'}`}>
+    <div className={`w-4/5 mx-auto space-y-4 absolute ${newChat ? 'inset-x-0 top-1/2 -translate-y-[65%] transform' : 'bottom-2 left-0 right-0'}`}>
       {newChat && (
         <div className='flex items-center gap-2 w-full justify-center my-10'>
-          <h1 className="text-4xl font-light"> Let's talk about</h1>
+          <h1 className="xl:text-4xl text-3xl font-light whitespace-nowrap"> Let's talk about</h1>
           <RotatingText
             texts={questionTopics}
-            mainClassName="px-2 sm:px-2 md:px-3 text-4xl transition-all duration-1000 font-regular bg-primary/90 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
+            mainClassName="px-2 sm:px-2 md:px-2 xl:text-3xl text-3xl transition-all duration-1000 font-regular bg-primary/90 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
             staggerFrom={"last"}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -98,60 +98,62 @@ const ChatInput: React.FC<ChatInputProps> = ({
           />
         </div>
       )}
-      <div className="px-4 py-3 rounded-[25px] h-fit border border-primary/20 bg-[var(--chat-foreground)] focus-within:border-primary/50 focus-within:shadow-lg focus-within:shadow-primary/20 transition-all flex flex-col">
-        <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
-        <div>
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleTextChange}
-            onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            placeholder="What would you like to know?"
-            className="w-full bg-transparent px-2 pt-2 text-foreground placeholder-muted-foreground resize-none outline-none leading-6 max-h-[384px] overflow-y-auto"
-            rows={1}
-            disabled={isLoading}
-          />
-        </div>
-        <div className="h-14 flex items-center justify-between gap-2">
-          <button
-            onClick={handleAttachClick}
-            className="shrink-0 h-9 w-9 grid place-items-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
-            title="Attach file"
-            type="button"
-          >
-            <Paperclip size={18} />
-          </button>
-          <button
-            onClick={handleSend}
-            disabled={!message.trim() || isLoading}
-            className="shrink-0 h-9 w-9 grid place-items-center rounded-xl bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-background transition-all hover:shadow-lg hover:shadow-primary/50 disabled:shadow-none"
-            title="Send message"
-            type="button"
-          >
-            <ArrowUpRight size={18} />
-          </button>
-        </div>
-      </div>
-      {/* Quick Suggestions */}
-      {showSuggestions && newChat && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex w-full justify-center">
-          {QUICK_SUGGESTIONS.map((suggestion) => (
+      <div className='w-3/4 xl:w-3/5 mx-auto'>
+        <div className="px-4 py-3 rounded-[25px] h-fit border border-primary/20 bg-[var(--chat-foreground)] focus-within:border-primary/50 focus-within:shadow-lg focus-within:shadow-primary/20 transition-all flex flex-col">
+          <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+          <div>
+            <textarea
+              ref={textareaRef}
+              value={message}
+              onChange={handleTextChange}
+              onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder="What would you like to know?"
+              className="w-full bg-transparent px-2 pt-2 text-foreground placeholder-muted-foreground resize-none outline-none leading-6 max-h-[384px] overflow-y-auto"
+              rows={1}
+              disabled={isLoading}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-2">
             <button
-              key={suggestion}
-              onClick={() => handleSuggestion(suggestion)}
-              className="flex items-center gap-2 px-4 py-3 text-foreground text-sm transition-all duration-200 hover:border-primary/50 group"
+              onClick={handleAttachClick}
+              className="shrink-0 h-9 w-9 grid place-items-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+              title="Attach file"
+              type="button"
             >
-              <Plus size={16} className="text-primary" />
-              <span className="text-center hover:text-primary transition-colors duration-200">{suggestion}</span>
+              <Paperclip size={18} />
             </button>
-          ))}
+            <button
+              onClick={handleSend}
+              disabled={!message.trim() || isLoading}
+              className="shrink-0 h-9 w-9 grid place-items-center rounded-xl bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-background transition-all hover:shadow-lg hover:shadow-primary/50 disabled:shadow-none"
+              title="Send message"
+              type="button"
+            >
+              <ArrowUpRight size={18} />
+            </button>
+          </div>
         </div>
-      )}
+        {/* Quick Suggestions */}
+        {showSuggestions && newChat && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex w-full justify-center mt-2">
+            {QUICK_SUGGESTIONS.map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => handleSuggestion(suggestion)}
+                className="flex items-center gap-2 px-4 py-3 text-foreground text-sm transition-all duration-200 hover:border-primary/50 group"
+              >
+                <Plus size={16} className="text-primary w-4 h-4 flex-shrink-0" />
+                <span className="text-left hover:text-primary transition-colors duration-200">{suggestion}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

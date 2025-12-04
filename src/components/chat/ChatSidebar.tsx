@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Trash2, PanelLeftClose, PanelLeftOpen, PenTool } from 'lucide-react';
 import Image from 'next/image';
-import * as Dialog from '@radix-ui/react-dialog';
 import ChatListItem from './ChatList';
 import { Montserrat } from 'next/font/google';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import ChatSearchDialog from '@/components/chat/ChatSearchDialog';
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: '500' });
 interface Message {
@@ -26,9 +26,13 @@ interface ChatHistory {
 interface ChatSidebarProps {
   onChatSelect?: (messages: Message[]) => void;
   messages?: Message[];
+  isTablet?: boolean;
+  isMobile?: boolean;
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
 }
 
-const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => {
+const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTablet, isMobile, collapsed, onCollapsedChange }) => {
   const [chatHistory, setChatHistory] = useState<readonly ChatHistory[]>([
     { id: '1', title: 'Portfolio Optimization Optimization Optimization Optimization', timestamp: new Date(Date.now() - 3600000), isActive: false, messages: messages, starred: false },
     { id: '2', title: 'AI/ML Technologies', timestamp: new Date(Date.now() - 86400000), starred: true },
@@ -36,7 +40,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => 
     { id: '4', title: 'Backend Architecture', timestamp: new Date(Date.now() - 259200000), starred: false },
     { id: '5', title: 'Frontend Best Practices', timestamp: new Date(Date.now() - 345600000), starred: false },
   ]);
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [opacityAnimationClasses, setOpacityAnimationClasses] = useState('transition-opacity duration-100 opacity-100');
@@ -81,9 +84,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => 
 
   useEffect(() => {
     const prevailingOpacityClass = "transition-opacity duration-100"
-    const opacityAnimationClassChange = isCollapsed ? 'opacity-0' : 'opacity-100';
+    const opacityAnimationClassChange = collapsed ? 'opacity-0' : 'opacity-100';
     setOpacityAnimationClasses(prevailingOpacityClass + " " + opacityAnimationClassChange);
-  }, [isCollapsed]);
+  }, [collapsed]);
 
   const formatTime = (date: Date): string => {
     const now = new Date();
@@ -106,12 +109,20 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => 
     onChatSelect?.([]);
   };
 
+  const widthClass: string = collapsed ? (isMobile ? 'w-0' : 'w-16') : 'w-64';
+
   return (
-    <div
-      className={`relative overflow-hidden border-r flex flex-col bg-[var(--chat-foreground)] h-full transition-all duration-200 ${
-        isCollapsed ? 'w-16' : 'w-64'
-      }`}
-    >
+    <>
+      {(isTablet || isMobile) && !collapsed && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={() => onCollapsedChange(true)}
+          aria-hidden="true"
+        />
+      )}
+      <div
+        className={`${( isTablet || isMobile ) ? 'absolute z-50' : 'relative'} overflow-hidden border-r flex flex-col bg-[var(--chat-foreground)] h-full transition-all duration-200 ${widthClass}`}
+      >
       <div className="px-4 pt-4 pb-0 mt-2">
         <div className="flex items-center justify-between gap-3 relative top-0 h-5">
           <div className={`flex items-center gap-2 absolute left-0 ${opacityAnimationClasses}`}>
@@ -123,9 +134,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => 
             </div>
           </div>
           <div className="absolute right-0">
-            {isCollapsed ? (
+            {collapsed ? (
               <button
-                onClick={() => setIsCollapsed(false)}
+                onClick={() => onCollapsedChange(false)}
                 className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-all duration-200 flex-shrink-0"
                 title="Expand sidebar"
               >
@@ -133,7 +144,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => 
               </button>
             ) : (
               <button
-                onClick={() => setIsCollapsed(true)}
+                onClick={() => onCollapsedChange(true)}
                 className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-all duration-200 flex-shrink-0"
                 title="Collapse sidebar"
               >
@@ -155,53 +166,23 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => 
                   </div>
                   <span className={`text-xs font-medium whitespace-nowrap ${opacityAnimationClasses}`}>New Chat</span>
                 </button>
-                <Dialog.Root open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-                  <Dialog.Trigger asChild>
+                <ChatSearchDialog
+                  trigger={
                     <button className="flex items-center gap-3 px-0 py-1.5 text-white hover:text-primary transition-colors duration-200 group outline-none">
-                      <div className='pl-2'> 
+                      <div className='pl-2'>
                         <Search size={logoSize} className="text-slate-400 group-hover:text-primary transition-colors" />
                       </div>
                       <span className={`text-xs font-medium whitespace-nowrap ${opacityAnimationClasses}`}>Search Chats</span>
                     </button>
-                  </Dialog.Trigger>
-                  <Dialog.Portal>
-                    <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40" />
-                    <Dialog.Content className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--chat-foreground)] border border-primary/20 rounded-lg shadow-lg z-50 w-2/5 h-2/5 max-h-[60%] flex flex-col">
-                      <div className="p-4 border-b border-slate-800">
-                        <Dialog.Title className="text-lg font-semibold text-white mb-3">Search Chats</Dialog.Title>
-                        <div className="relative">
-                          <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" />
-                          <input
-                            type="text"
-                            placeholder="Search your chats..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-slate-800/50 border border-slate-700 text-white text-sm placeholder-slate-500 outline-none"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2">
-                        {filteredChats.length > 0 ? (
-                          filteredChats.map((chat) => (
-                            <ChatListItem
-                              key={chat.id}
-                              chat={chat}
-                              isActive={!!chat.isActive}
-                              onClick={() => setIsSearchOpen(false)}
-                              onDelete={(id) => handleDeleteChat(id)}
-                              subtitle={formatTime(chat.timestamp)}
-                              variant="search"
-                            />
-                          ))
-                        ) : (
-                          <div className="flex items-center justify-center py-8 text-center">
-                            <p className="text-sm text-slate-500">No chats found</p>
-                          </div>
-                        )}
-                      </div>
-                    </Dialog.Content>
-                  </Dialog.Portal>
-                </Dialog.Root>
+                  }
+                  open={isSearchOpen}
+                  onOpenChange={setIsSearchOpen}
+                  searchQuery={searchQuery}
+                  onSearchQueryChange={setSearchQuery}
+                  items={filteredChats}
+                  onDelete={(id) => handleDeleteChat(id)}
+                  subtitleFor={formatTime}
+                />
               </div>
             </div>
             <div 
@@ -251,7 +232,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => 
       </div>
 
       <div className="p-4 border-t space-y-2" style={{ borderColor: 'hsl(197, 92%, 56%)/10' }}>
-        {isCollapsed ? (
+        {collapsed ? (
           <div className="mt-auto w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
             <Image src="/white-logo/android-chrome-512x512.png" alt="Shades logo" width={shadesLogoSize} height={shadesLogoSize} className="w-full h-full object-cover" />          
           </div>
@@ -270,7 +251,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages }) => 
           />
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

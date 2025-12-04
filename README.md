@@ -131,5 +131,4 @@ The portfolio includes a fully functional contact form. To enable email function
    ```
 
 ## TODO:
-- [ ] Organise code in a better manner
-- [ ] Make it Responsive
+- [ ] Make it Responsive - Chat messages responsiveness for laptop and mobile view, new chat UI responsiveness for mobile view

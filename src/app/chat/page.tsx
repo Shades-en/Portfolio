@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatSidebar from '@/components/chat/ChatSidebar';
 import ChatHeader from '@/components/chat/ChatHeader';
 import ChatMessages from '@/components/chat/ChatMessages';
@@ -47,12 +47,47 @@ export default function ChatPage(): React.ReactElement {
   ];
 
   const [activeMessages, setActiveMessages] = useState<Message[]>(messages);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(true);
+
+  // Detect tablet/smaller viewport (<950px) and initialize collapsed state
+  useEffect(() => {
+    const handleResize = (): void => {
+      const tablet = globalThis.window !== undefined && globalThis.window.innerWidth < 950 && globalThis.window.innerWidth >= 640;
+      const mobile = globalThis.window !== undefined && globalThis.window.innerWidth < 640;
+      setIsTablet(tablet);
+      setIsMobile(mobile);
+    };
+    handleResize();
+    globalThis.window.addEventListener('resize', handleResize);
+    return () => globalThis.window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Default to collapsed on tablet/mobile viewports
+  useEffect(() => {
+    if (isTablet || isMobile) {
+      setSidebarCollapsed(true);
+    }
+  }, [isTablet, isMobile]);
 
   return (
     <div className="h-screen flex overflow-hidden w-full" style={{ fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif' }}>
-      <ChatSidebar onChatSelect={setActiveMessages} messages={messages} />
+      <ChatSidebar
+        onChatSelect={setActiveMessages}
+        messages={messages}
+        isTablet={isTablet}
+        isMobile={isMobile}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+      />
       <div className="flex-1 flex flex-col bg-[image:var(--chat-background-alt)] min-h-0 relative">
-        <ChatHeader onDeleteChat={() => setActiveMessages([])} />
+        <ChatHeader
+          onDeleteChat={() => setActiveMessages([])}
+          isTablet={isTablet}
+          isMobile={isMobile}
+          onMenuClick={() => setSidebarCollapsed(false)}
+        />
         <ChatMessages messages={activeMessages} />
       </div>
     </div>
