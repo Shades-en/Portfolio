@@ -92,6 +92,8 @@ All colors MUST be HSL for consistency.
     --chat-message-alt:
       linear-gradient(180deg, hsl(var(--primary) / 0.42) 0%, hsl(var(--primary) / 0.91) 100%),
       var(--chat-background-alt);
+    --chat-background-hard: hsl(222, 34%, 10%);
+    --chat-header: linear-gradient(to bottom, hsl(222, 34%, 10%) 0%, hsla(222, 34%, 10%, 0.9) 80%, hsla(222, 34%, 10%, 0) 100%);
 
     /* Shadows with electric blue glow */
     --shadow-glow: 0 0 40px hsla(197, 92%, 56%, 0.3);

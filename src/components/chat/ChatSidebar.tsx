@@ -34,9 +34,9 @@ interface ChatSidebarProps {
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTablet, isMobile, collapsed, onCollapsedChange }) => {
   const [chatHistory, setChatHistory] = useState<readonly ChatHistory[]>([
-    { id: '1', title: 'Portfolio Optimization Optimization Optimization Optimization', timestamp: new Date(Date.now() - 3600000), isActive: false, messages: messages, starred: false },
+    { id: '1', title: 'Portfolio Optimization Optimization Optimization Optimization', timestamp: new Date(Date.now() - 3600000), isActive: true, messages: messages, starred: false },
     { id: '2', title: 'AI/ML Technologies', timestamp: new Date(Date.now() - 86400000), starred: true },
-    { id: '3', title: 'Project Discussion Technologies Technologies Technologies Technologies', timestamp: new Date(Date.now() - 172800000), starred: true, isActive: true },
+    { id: '3', title: 'Project Discussion Technologies Technologies Technologies Technologies', timestamp: new Date(Date.now() - 172800000), starred: true, isActive: false },
     { id: '4', title: 'Backend Architecture', timestamp: new Date(Date.now() - 259200000), starred: false },
     { id: '5', title: 'Frontend Best Practices', timestamp: new Date(Date.now() - 345600000), starred: false },
   ]);
@@ -61,11 +61,17 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTab
     };
     setChatHistory([newChat, ...chatHistory.map(c => ({ ...c, isActive: false }))]);
     onChatSelect?.([]);
+    if (isMobile || isTablet) {
+      onCollapsedChange(true);
+    }
   };
 
   const handleChatClick = (chat: ChatHistory): void => {
     setChatHistory(chatHistory.map(c => ({ ...c, isActive: c.id === chat.id })));
     onChatSelect?.(chat.messages || []);
+    if (isMobile || isTablet) {
+      onCollapsedChange(true);
+    }
   };
 
   const handleDeleteChat = (id: string, e?: React.MouseEvent): void => {
@@ -89,16 +95,20 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTab
   }, [collapsed]);
 
   const formatTime = (date: Date): string => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    const now = Date.now();
+    const t = new Date(date).getTime();
+    const diffSec = Math.max(0, Math.floor((now - t) / 1000));
+    if (diffSec < 60) return `${diffSec} sec ago`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} min ago`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}h ago`;
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 30) return `${diffDay}d ago`;
+    const diffMon = Math.floor(diffDay / 30);
+    if (diffMon < 12) return `${diffMon} mon ago`;
+    const diffYear = Math.floor(diffMon / 12);
+    return `${diffYear}y ago`;
   };
 
   const logoSize = 16;

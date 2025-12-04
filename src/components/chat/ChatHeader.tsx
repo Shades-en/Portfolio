@@ -10,9 +10,10 @@ interface ChatHeaderProps {
   readonly isTablet?: boolean;
   readonly isMobile?: boolean;
   readonly onMenuClick?: () => void;
+  readonly newChat?: boolean;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ title = 'New Chat', onDeleteChat, isTablet, isMobile, onMenuClick }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ title = 'New Chat', onDeleteChat, isTablet, isMobile, onMenuClick, newChat }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -101,22 +102,28 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ title = 'New Chat', onDeleteCha
   };
 
   return (
-    <div className="px-6 py-4 absolute top-0 z-[2] w-full">
-      <div className="w-full relative flex justify-between items-center">
-        {(isTablet || isMobile) && (
-          <button
-            className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all duration-200"
-            title="Menu"
-            aria-label="Open menu"
-            onClick={onMenuClick}
-          >
-            <Menu size={20} />
-          </button>
-        )}
-        <div className="flex items-center gap-2 relative z-10 flex-shrink-0">
-          {renderTitle()}
-          {renderDropdown()}
-        </div>
+    <div className="px-6 py-4 absolute top-0 z-[2] w-full bg-[image:var(--chat-header)] sm:bg-none">
+      {/* Mobile gradient overlay (opaque -> short fade) */}
+      <div className="absolute inset-0 sm:hidden z-0 pointer-events-none" />
+      <div className="w-full relative z-10 flex justify-between items-center">
+          <div className="flex items-center sm:gap-4 gap-2 relative z-10 flex-shrink-0">
+            {(isTablet || isMobile) && (
+              <button
+                className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all duration-200"
+                title="Menu"
+                aria-label="Open menu"
+                onClick={onMenuClick}
+              >
+                <Menu size={20} />
+              </button>
+            )}
+            {!newChat && (
+              <div className="flex items-center relative z-10 flex-shrink-0">
+                {renderTitle()}
+                {(!isEditing) && renderDropdown()}
+              </div>
+            )}
+          </div>
 
         <button
             className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all duration-200"

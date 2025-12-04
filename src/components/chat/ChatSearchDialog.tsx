@@ -38,7 +38,7 @@ const ChatSearchDialog: React.FC<ChatSearchDialogProps> = ({
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--chat-foreground)] border border-primary/20 rounded-lg shadow-lg z-50 w-2/5 h-2/5 max-h-[60%] flex flex-col">
+        <Dialog.Content className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[var(--chat-foreground)] border border-primary/20 rounded-lg shadow-lg z-50 w-4/5 sm:w-3/5 lg:w-2/5 lg:h-3/5 h-2/5 max-h-[60%] flex flex-col">
           <div className="p-4 border-b border-slate-800">
             <Dialog.Title className="text-lg font-semibold text-white mb-3">Search Chats</Dialog.Title>
             <div className="relative">

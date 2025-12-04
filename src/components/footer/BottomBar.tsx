@@ -1,4 +1,3 @@
-// Server Component - No 'use client' directive for SEO benefits
 import React from 'react';
 import { Heart } from 'lucide-react';
 import personalInfo from '@/data/personal-info.json';

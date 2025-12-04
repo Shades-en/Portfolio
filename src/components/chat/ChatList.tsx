@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -28,21 +30,33 @@ const ChatList: React.FC<ChatListProps> = ({
   subtitle,
   variant = 'default',
 }) => {
-  const formatStableTime = (value: Date): string => {
-    const iso = new Date(value).toISOString();
-    return iso.slice(11, 16); // HH:MM in UTC
+  const formatRelativeTime = (value: Date): string => {
+    const now = Date.now();
+    const t = new Date(value).getTime();
+    const diffSec = Math.max(0, Math.floor((now - t) / 1000));
+    if (diffSec < 60) return `${diffSec}s ago`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}h ago`;
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 30) return `${diffDay}d ago`;
+    const diffMon = Math.floor(diffDay / 30);
+    if (diffMon < 12) return `${diffMon}mo ago`;
+    const diffYear = Math.floor(diffMon / 12);
+    return `${diffYear}y ago`;
   };
   const baseWrapper = `group w-[95%] relative flex items-center px-3 py-1.5 rounded-lg transition-all duration-200 ${
     isActive
       ? 'bg-slate-700/60 border border-slate-600 shadow-lg shadow-slate-900'
-      : 'hover:bg-slate-800/40 border border-transparent hover:border-slate-700'
+      : 'lg:hover:bg-slate-800/40 border border-transparent lg:hover:border-slate-700'
   }`;
 
   return (
     <div className={baseWrapper}>
       <button
         onClick={() => onClick(chat)}
-        className="flex-1 min-w-0 text-left bg-transparent focus:outline-none"
+        className={`${variant === 'search' ? 'flex-[0_1_92%]' : 'flex-1'} min-w-0 text-left bg-transparent focus:outline-none`}
         type="button"
       >
         <div className="relative min-w-0">
@@ -68,8 +82,8 @@ const ChatList: React.FC<ChatListProps> = ({
       {variant === 'default' ? (
         <div className="w-10 flex items-center justify-end flex-shrink-0">
           {showTimestamp && (
-            <p className="text-xs leading-none h-4 flex items-center text-slate-500 whitespace-nowrap group-hover:hidden group-focus-within:hidden">
-              {formatStableTime(chat.timestamp)}
+            <p className="text-xs leading-none h-4 flex items-center text-slate-500 whitespace-nowrap lg:group-hover:hidden group-focus-within:hidden">
+              {formatRelativeTime(chat.timestamp)}
             </p>
           )}
           {onDelete && (
@@ -77,7 +91,7 @@ const ChatList: React.FC<ChatListProps> = ({
               trigger={
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="ml-1 inline-flex h-4 w-4 p-0 items-center justify-center hover:bg-red-900/30 rounded transition-colors duration-200 hidden group-hover:inline-flex group-focus-within:inline-flex"
+                  className="ml-1 inline-flex h-4 w-4 p-0 items-center justify-center lg:hover:bg-red-900/30 rounded transition-colors duration-200 hidden lg:group-hover:inline-flex group-focus-within:inline-flex"
                   title="Delete"
                   type="button"
                 >
@@ -97,7 +111,7 @@ const ChatList: React.FC<ChatListProps> = ({
             trigger={
               <button
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-red-900/30 rounded-lg transition-all duration-200 hover:scale-110"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 lg:hover:bg-red-900/30 rounded-lg transition-all duration-200 lg:hover:scale-110"
                 title="Delete"
                 type="button"
               >

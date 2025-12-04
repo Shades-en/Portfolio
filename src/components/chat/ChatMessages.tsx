@@ -13,9 +13,10 @@ interface Message {
 
 interface ChatMessagesProps {
   readonly messages?: readonly Message[];
+  readonly isMobile?: boolean;
 }
 
-const ChatMessages: React.FC<ChatMessagesProps> = ({ messages = [] }) => {
+const ChatMessages: React.FC<ChatMessagesProps> = ({ messages = [], isMobile = false }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (): void => {
@@ -27,9 +28,9 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages = [] }) => {
   }, [messages]);
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 relative">
-      <div className="flex-1 overflow-y-auto no-scrollbar mb-10 bg-[image:var(--chat-background-alt)] overscroll-y-contain pt-16">
-        <div className="w-7/12 mx-auto py-6 space-y-6 mb-60">
+    <div className="flex-1 flex flex-col min-h-0 relative overscroll-none">
+      <div className="flex-1 overflow-y-auto no-scrollbar bg-[image:var(--chat-background-alt)] pt-16 mb-16">
+        <div className="w-11/12 sm:w-7/12 xl:w-1/2 mx-auto py-6 space-y-6 pb-[calc(env(safe-area-inset-bottom)+120px)] sm:pb-60">
           {messages.length !== 0 && (
             messages.map((message) => (
               <ChatMessageItem key={message.id} message={message} />
@@ -38,7 +39,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages = [] }) => {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <ChatInput newChat={messages.length === 0}/>
+      <ChatInput newChat={messages.length === 0} isMobile={isMobile}/>
     </div>
   );
 };
