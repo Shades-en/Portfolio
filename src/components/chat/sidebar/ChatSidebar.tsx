@@ -153,12 +153,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
                   </div>
                 )}
 
-                {sessions.length > 0 && (
+                {allSessions.length > 0 && (
                   <div className='space-y-1'>
                     <div className='mb-3'>
                       <p className="text-xs font-medium text-slate-400 tracking-wide">Recents</p>
                     </div>
-                    {sessions.map((session) => (
+                    {allSessions.map((session) => (
                       <ChatListItem
                         key={session.id}
                         chat={session}

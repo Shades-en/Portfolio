@@ -32,3 +32,9 @@ export default async function ChatPage(): Promise<React.ReactElement> {
 
   return <Chat isNewUser={isNewUser} user={user} sessionsData={sessionsData} />;
 }
+
+// TODO 
+// even tool role messages are being shown in UI
+// incase of ai messages - tool - ai message -> order is getting messed up. Fix it.
+// when session already exist why is it creating temprorary session it shouldnt
+// when session is clicked - it should be smoothly shown the latest messages and not abrupt scrolling
