@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
-import { publicUrl } from "@/constants";
+import { publicConfig } from "@/config";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || publicUrl;
+  const baseUrl = publicConfig.publicUrl;
   
   return {
     rules: [

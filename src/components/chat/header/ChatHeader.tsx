@@ -2,18 +2,19 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Settings, Menu } from 'lucide-react';
-import ChatOptionsMenu from '@/components/chat/ChatOptionsMenu';
+import ChatOptionsMenu from './ChatOptionsMenu';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setCurrentSession } from '@/store/slices/chatSlice';
 
 interface ChatHeaderProps {
   readonly title?: string;
-  readonly onDeleteChat?: () => void;
-  readonly isTablet?: boolean;
-  readonly isMobile?: boolean;
   readonly onMenuClick?: () => void;
-  readonly newChat?: boolean;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ title = 'New Chat', onDeleteChat, isTablet, isMobile, onMenuClick, newChat }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ title = 'New Chat', onMenuClick }) => {
+  const dispatch = useAppDispatch();
+  const { isTablet, isMobile, messages } = useAppSelector((state) => state.chat);
+  const newChat = messages.length === 0;
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -23,8 +24,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ title = 'New Chat', onDeleteCha
     setIsEditing(true);
   };
 
+  const handleDeleteChat = (): void => {
+    dispatch(setCurrentSession(''));
+  };
+
   const renderDropdown = (): React.ReactNode => (
-    <ChatOptionsMenu onRename={() => setIsEditing(true)} onDelete={onDeleteChat} />
+    <ChatOptionsMenu onRename={() => setIsEditing(true)} onDelete={handleDeleteChat} />
   );
 
   const handleSave = (): void => {

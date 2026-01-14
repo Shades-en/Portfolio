@@ -1,74 +1,43 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, PanelLeftClose, PanelLeftOpen, PenTool } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import ChatListItem from './ChatList';
-import { Montserrat } from 'next/font/google';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import ChatSearchDialog from '@/components/chat/ChatSearchDialog';
+import ChatSearchDialog from './ChatSearchDialog';
+import SidebarLogo from './SidebarLogo';
+import SidebarToggle from './SidebarToggle';
+import NewChatButton from './NewChatButton';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setCurrentSession, fetchMessagesRequest } from '@/store/slices/chatSlice';
 
-const montserrat = Montserrat({ subsets: ['latin'], weight: '500' });
-interface Message {
-  readonly id: string;
-  readonly role: 'user' | 'assistant';
-  readonly content: string;
-  readonly timestamp: Date;
-}
-interface ChatHistory {
-  readonly id: string;
-  readonly title: string;
-  readonly timestamp: Date;
-  readonly isActive?: boolean;
-  readonly messages?: Message[];
-  readonly starred?: boolean;
-}
 interface ChatSidebarProps {
-  onChatSelect?: (messages: Message[]) => void;
-  messages?: Message[];
-  isTablet?: boolean;
-  isMobile?: boolean;
   collapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
 }
 
-const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTablet, isMobile, collapsed, onCollapsedChange }) => {
-  const [chatHistory, setChatHistory] = useState<readonly ChatHistory[]>([
-    { id: '1', title: 'Portfolio Optimization Optimization Optimization Optimization', timestamp: new Date(Date.now() - 3600000), isActive: true, messages: messages, starred: false },
-    { id: '2', title: 'AI/ML Technologies', timestamp: new Date(Date.now() - 86400000), starred: true },
-    { id: '3', title: 'Project Discussion Technologies Technologies Technologies Technologies', timestamp: new Date(Date.now() - 172800000), starred: true, isActive: false },
-    { id: '4', title: 'Backend Architecture', timestamp: new Date(Date.now() - 259200000), starred: false },
-    { id: '5', title: 'Frontend Best Practices', timestamp: new Date(Date.now() - 345600000), starred: false },
-  ]);
+const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange }) => {
+  const dispatch = useAppDispatch();
+  const { isTablet, isMobile, sessions, temporarySessions, currentSessionId } = useAppSelector((state) => state.chat);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [opacityAnimationClasses, setOpacityAnimationClasses] = useState('transition-opacity duration-100 opacity-100');
 
-  const filteredChats = chatHistory.filter(chat =>
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const allSessions = [...temporarySessions, ...sessions];
+  
+  const filteredChats = allSessions
+    .filter(session => session.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const starredChats = chatHistory.filter(chat => chat.starred);
-  const recentChats = chatHistory;
-
-  const handleNewChat = (): void => {
-    const newChat: ChatHistory = {
-      id: Date.now().toString(),
-      title: 'New Chat',
-      timestamp: new Date(),
-      isActive: true,
-      messages: [],
-    };
-    setChatHistory([newChat, ...chatHistory.map(c => ({ ...c, isActive: false }))]);
-    onChatSelect?.([]);
-    if (isMobile || isTablet) {
-      onCollapsedChange(true);
+  const starredChats = allSessions
+    .filter(session => session.starred);
+    
+  const handleChatClick = (sessionId: string): void => {
+    dispatch(setCurrentSession(sessionId));
+    const isTemporary = sessionId.startsWith('temp-');
+    if (!isTemporary) {
+      dispatch(fetchMessagesRequest({ sessionId, page: 1, pageSize: 50 }));
     }
-  };
-
-  const handleChatClick = (chat: ChatHistory): void => {
-    setChatHistory(chatHistory.map(c => ({ ...c, isActive: c.id === chat.id })));
-    onChatSelect?.(chat.messages || []);
     if (isMobile || isTablet) {
       onCollapsedChange(true);
     }
@@ -76,17 +45,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTab
 
   const handleDeleteChat = (id: string, e?: React.MouseEvent): void => {
     if (e) e.stopPropagation();
-    setChatHistory(chatHistory.filter(chat => chat.id !== id));
   };
 
-  useEffect(() => {
-    const activeChat = chatHistory.find(c => c.isActive);
-    if (activeChat) {
-      onChatSelect?.(activeChat.messages || []);
-    } else {
-      handleNewChat();
-    }
-  }, []);
 
   useEffect(() => {
     const prevailingOpacityClass = "transition-opacity duration-100"
@@ -115,8 +75,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTab
   const shadesLogoSize = 24;
 
   const handleClearHistory = (): void => {
-    setChatHistory([]);
-    onChatSelect?.([]);
   };
 
   const widthClass: string = collapsed ? (isMobile ? 'w-0' : 'w-16') : 'w-64';
@@ -135,33 +93,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTab
       >
       <div className="px-4 pt-4 pb-0 mt-2">
         <div className="flex items-center justify-between gap-3 relative top-0 h-5">
-          <div className={`flex items-center gap-2 absolute left-0 ${opacityAnimationClasses}`}>
-            <div className="p-0.5 pr-0 flex-shrink-0">
-              <Image src="/white-logo/android-chrome-512x512.png" alt="Shades Icon" width={shadesLogoSize} height={shadesLogoSize} className="rounded-md" />
-            </div>
-            <div>
-              <p className={`${montserrat.className} text-sm font-regular uppercase text-white`}>Shades</p>
-            </div>
-          </div>
-          <div className="absolute right-0">
-            {collapsed ? (
-              <button
-                onClick={() => onCollapsedChange(false)}
-                className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-all duration-200 flex-shrink-0"
-                title="Expand sidebar"
-              >
-                <PanelLeftOpen size={logoSize} />
-              </button>
-            ) : (
-              <button
-                onClick={() => onCollapsedChange(true)}
-                className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-all duration-200 flex-shrink-0"
-                title="Collapse sidebar"
-              >
-                <PanelLeftClose size={logoSize} />
-              </button>
-            )}
-          </div>
+          <SidebarLogo className={`absolute left-0 ${opacityAnimationClasses}`} />
+          <SidebarToggle 
+            collapsed={collapsed} 
+            onToggle={onCollapsedChange} 
+            className="absolute right-0" 
+          />
         </div>
       </div>
 
@@ -170,12 +107,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTab
           <div className="h-full flex flex-col justify-center">
             <div className="p-4 py-1 border-b border-slate-800 h-24">
               <div className="flex flex-col gap-2 h-full">
-                <button onClick={handleNewChat} className="flex items-center gap-3 px-0 py-1.5 text-white hover:text-primary transition-colors duration-200 group">
-                  <div className='pl-2'>
-                    <PenTool size={logoSize} className="text-slate-400 group-hover:text-primary transition-colors" />
-                  </div>
-                  <span className={`text-xs font-medium whitespace-nowrap ${opacityAnimationClasses}`}>New Chat</span>
-                </button>
+                <NewChatButton 
+                  className={opacityAnimationClasses} 
+                  onCollapsedChange={onCollapsedChange} 
+                />
                 <ChatSearchDialog
                   trigger={
                     <button className="flex items-center gap-3 px-0 py-1.5 text-white hover:text-primary transition-colors duration-200 group outline-none">
@@ -205,12 +140,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTab
                     <div className='mb-3'>
                       <p className="text-xs font-medium text-slate-400 tracking-wide">Starred</p>
                     </div>
-                    {starredChats.map((chat) => (
+                    {starredChats.map((session) => (
                       <ChatListItem
-                        key={chat.id}
-                        chat={chat}
-                        isActive={!!chat.isActive}
-                        onClick={() => handleChatClick(chat)}
+                        key={session.id}
+                        chat={session}
+                        isActive={session.id === currentSessionId}
+                        onClick={() => handleChatClick(session.id)}
                         onDelete={(id) => handleDeleteChat(id)}
                         showTimestamp
                       />
@@ -218,17 +153,17 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ onChatSelect, messages, isTab
                   </div>
                 )}
 
-                {recentChats.length > 0 && (
+                {sessions.length > 0 && (
                   <div className='space-y-1'>
                     <div className='mb-3'>
                       <p className="text-xs font-medium text-slate-400 tracking-wide">Recents</p>
                     </div>
-                    {recentChats.map((chat) => (
+                    {sessions.map((session) => (
                       <ChatListItem
-                        key={chat.id}
-                        chat={chat}
-                        isActive={!!chat.isActive}
-                        onClick={() => handleChatClick(chat)}
+                        key={session.id}
+                        chat={session}
+                        isActive={session.id === currentSessionId}
+                        onClick={() => handleChatClick(session.id)}
                         onDelete={(id) => handleDeleteChat(id)}
                         showTimestamp
                       />

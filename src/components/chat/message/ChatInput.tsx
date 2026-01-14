@@ -4,14 +4,12 @@ import React, { useState } from 'react';
 import { ArrowUpRight, Paperclip, Plus } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import RotatingText from '@/components/animation/RotatingText';
-import './chat.css';
+import { useAppSelector } from '@/store/hooks';
+import '../chat.css';
 
 interface ChatInputProps {
   readonly onSendMessage?: (message: string) => void;
-  readonly isLoading?: boolean;
   readonly newChat?: boolean;
-  readonly userName?: string;
-  readonly isMobile?: boolean;
 }
 
 const QUICK_SUGGESTIONS = [
@@ -23,11 +21,10 @@ const QUICK_SUGGESTIONS = [
 
 const ChatInput: React.FC<ChatInputProps> = ({ 
   onSendMessage,
-  isLoading = false,
-  newChat = false,
-  userName = 'there',
-  isMobile = false
+  newChat = false
 }) => {
+  const { isMobile, loading } = useAppSelector((state) => state.chat);
+  const isLoading = loading.messages;
   const [message, setMessage] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);

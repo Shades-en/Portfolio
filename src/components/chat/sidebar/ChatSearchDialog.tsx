@@ -2,13 +2,7 @@ import React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Search } from 'lucide-react';
 import ChatListItem from './ChatList';
-
-export interface ChatSearchItem {
-  readonly id: string;
-  readonly title: string;
-  readonly timestamp: Date;
-  readonly isActive?: boolean;
-}
+import type { Session } from '@/types/chat';
 
 interface ChatSearchDialogProps {
   readonly trigger: React.ReactNode;
@@ -16,9 +10,9 @@ interface ChatSearchDialogProps {
   readonly onOpenChange: (open: boolean) => void;
   readonly searchQuery: string;
   readonly onSearchQueryChange: (value: string) => void;
-  readonly items: readonly ChatSearchItem[];
+  readonly items: readonly Session[];
   readonly onDelete?: (id: string) => void;
-  readonly onSelect?: (chat: ChatSearchItem) => void;
+  readonly onSelect?: (session: Session) => void;
   readonly subtitleFor?: (date: Date) => string;
 }
 
@@ -54,14 +48,14 @@ const ChatSearchDialog: React.FC<ChatSearchDialogProps> = ({
           </div>
           <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2">
             {items.length > 0 ? (
-              items.map((chat) => (
+              items.map((session) => (
                 <ChatListItem
-                  key={chat.id}
-                  chat={chat}
-                  isActive={!!chat.isActive}
+                  key={session.id}
+                  chat={session}
+                  isActive={false}
                   onClick={() => onOpenChange(false)}
                   onDelete={onDelete ? (id) => onDelete(id) : undefined}
-                  subtitle={subtitleFor ? subtitleFor(chat.timestamp) : undefined}
+                  subtitle={subtitleFor ? subtitleFor(new Date(session.updated_at)) : undefined}
                   variant="search"
                 />
               ))

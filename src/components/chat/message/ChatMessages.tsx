@@ -3,20 +3,12 @@
 import React, { useEffect, useRef } from 'react';
 import ChatMessageItem from './ChatMessageItem';
 import ChatInput from './ChatInput';
+import { useAppSelector } from '@/store/hooks';
 
-interface Message {
-  readonly id: string;
-  readonly role: 'user' | 'assistant';
-  readonly content: string;
-  readonly timestamp: Date;
-}
+interface ChatMessagesProps {}
 
-interface ChatMessagesProps {
-  readonly messages?: readonly Message[];
-  readonly isMobile?: boolean;
-}
-
-const ChatMessages: React.FC<ChatMessagesProps> = ({ messages = [], isMobile = false }) => {
+const ChatMessages: React.FC<ChatMessagesProps> = () => {
+  const { messages } = useAppSelector((state) => state.chat);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (): void => {
@@ -39,7 +31,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages = [], isMobile = f
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <ChatInput newChat={messages.length === 0} isMobile={isMobile}/>
+      <ChatInput newChat={messages.length === 0} />
     </div>
   );
 };

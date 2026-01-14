@@ -5,11 +5,12 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { publicUrl } from "@/constants";
+import ReduxProvider from "@/components/providers/ReduxProvider";
+import { publicConfig } from "@/config";
 import personalInfo from "@/data/personal-info.json";
 import { Analytics } from '@vercel/analytics/next';
 
-const myUrl = process.env.NEXT_PUBLIC_SITE_URL || publicUrl;
+const myUrl = publicConfig.publicUrl;
 
 const inter = Inter({
   subsets: ['latin'],
@@ -118,19 +119,21 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
             })
           }}
         />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <QueryProvider>
-            <TooltipProvider>
-              {children}
-              <ToastProvider />
-            </TooltipProvider>
-          </QueryProvider>
-        </ThemeProvider>
+        <ReduxProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <QueryProvider>
+              <TooltipProvider>
+                {children}
+                <ToastProvider />
+              </TooltipProvider>
+            </QueryProvider>
+          </ThemeProvider>
+        </ReduxProvider>
         <Analytics />
       </body>
     </html>

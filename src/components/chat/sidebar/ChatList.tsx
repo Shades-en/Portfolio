@@ -3,18 +3,12 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-
-interface ChatItem {
-  readonly id: string;
-  readonly title: string;
-  readonly timestamp: Date;
-  readonly isActive?: boolean;
-}
+import type { Session } from '@/types/chat';
 
 interface ChatListProps {
-  readonly chat: ChatItem;
+  readonly chat: Session;
   readonly isActive: boolean;
-  readonly onClick: (chat: ChatItem) => void;
+  readonly onClick: (session: Session) => void;
   readonly onDelete?: (id: string, e?: React.MouseEvent) => void;
   readonly showTimestamp?: boolean;
   readonly subtitle?: string;
@@ -71,7 +65,7 @@ const ChatList: React.FC<ChatListProps> = ({
               maskRepeat: 'no-repeat',
             }}
           >
-            {chat.title}
+            {chat.name}
           </p>
           {subtitle && (
             <p className="text-xs text-slate-500">{subtitle}</p>
@@ -83,7 +77,7 @@ const ChatList: React.FC<ChatListProps> = ({
         <div className="w-10 flex items-center justify-end flex-shrink-0">
           {showTimestamp && (
             <p className="text-xs leading-none h-4 flex items-center text-slate-500 whitespace-nowrap lg:group-hover:hidden group-focus-within:hidden">
-              {formatRelativeTime(chat.timestamp)}
+              {formatRelativeTime(new Date(chat.updated_at))}
             </p>
           )}
           {onDelete && (

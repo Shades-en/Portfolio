@@ -1,1 +1,0 @@
-export const publicUrl = "https://iqbalowais.com"

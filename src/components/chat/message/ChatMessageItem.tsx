@@ -1,14 +1,8 @@
 import React, { useState } from "react";
 import { User, Copy, ThumbsUp, ThumbsDown, Edit, Check } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import './chat.css';
-
-interface Message {
-  readonly id: string;
-  readonly role: "user" | "assistant";
-  readonly content: string;
-  readonly timestamp: Date;
-}
+import { Streamdown } from "streamdown";
+import type { Message } from '@/types/chat';
+import '../chat.css';
 
 interface ChatMessageItemProps {
   readonly message: Message;
@@ -44,22 +38,22 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => {
   return (
     <div
       className={`flex gap-4 animate-fade-in-up group relative ${
-        message.role === "user" ? "justify-end" : "justify-start"
+        message.role === "human" ? "justify-end" : "justify-start"
       }`}
     >
       <div
         className={`flex flex-col gap-1 max-w-2xl ${
-          message.role === "user" ? "items-end" : "items-start"
+          message.role === "human" ? "items-end" : "items-start"
         }`}
       >
         <div
           className={`px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-sm ${
-            message.role === "user"
+            message.role === "human"
               ? "rounded-br-none"
               : "text-foreground rounded-bl-none"
           }`}
           style={
-            message.role === "user"
+            message.role === "human"
               ? {
                   background: 'var(--chat-message)',
                   color: "hsl(210, 40%, 98%)",
@@ -68,9 +62,9 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => {
               : {}
           }
         >
-          {message.role === "assistant" ? (
+          {message.role === "ai" ? (
             <div className="text-sm leading-relaxed prose prose-invert max-w-none chat-ai-markdown">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+              <Streamdown>{message.content}</Streamdown>
             </div>
           ) : (
             <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
@@ -79,7 +73,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => {
           )}
         </div>
 
-        {message.role === "assistant" && (
+        {message.role === "ai" && (
           <div className="flex items-center gap-3 px-1 mt-2">
             <div className="relative group/tooltip">
               <button 
@@ -123,7 +117,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => {
 
       </div>
 
-      {message.role === "user" && (
+      {message.role === "human" && (
         <>
           <div className="flex-shrink-0 mt-1">
             <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center">

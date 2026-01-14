@@ -14,6 +14,7 @@ const nextConfig = {
       },
     ],
   },
+  transpilePackages: ['streamdown'],
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
