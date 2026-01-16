@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import type { Session } from '@/types/chat';
@@ -8,7 +9,6 @@ import type { Session } from '@/types/chat';
 interface ChatListProps {
   readonly chat: Session;
   readonly isActive: boolean;
-  readonly onClick: (session: Session) => void;
   readonly onDelete?: (id: string, e?: React.MouseEvent) => void;
   readonly showTimestamp?: boolean;
   readonly subtitle?: string;
@@ -18,7 +18,6 @@ interface ChatListProps {
 const ChatList: React.FC<ChatListProps> = ({
   chat,
   isActive,
-  onClick,
   onDelete,
   showTimestamp = true,
   subtitle,
@@ -48,10 +47,9 @@ const ChatList: React.FC<ChatListProps> = ({
 
   return (
     <div className={baseWrapper}>
-      <button
-        onClick={() => onClick(chat)}
+      <Link
+        href={`/chat/${chat.id}`}
         className={`${variant === 'search' ? 'flex-[0_1_92%]' : 'flex-1'} min-w-0 text-left bg-transparent focus:outline-none`}
-        type="button"
       >
         <div className="relative min-w-0">
           <p
@@ -71,12 +69,12 @@ const ChatList: React.FC<ChatListProps> = ({
             <p className="text-xs text-slate-500">{subtitle}</p>
           )}
         </div>
-      </button>
+      </Link>
 
       {variant === 'default' ? (
-        <div className="w-10 flex items-center justify-end flex-shrink-0">
+        <div className="w-10 flex items-center justify-end flex-shrink-0 relative">
           {showTimestamp && (
-            <p className="text-xs leading-none h-4 flex items-center text-slate-500 whitespace-nowrap lg:group-hover:hidden group-focus-within:hidden">
+            <p className="text-xs leading-none h-4 flex items-center text-slate-500 whitespace-nowrap absolute right-0 transition-opacity duration-200 lg:group-hover:opacity-0 lg:group-hover:pointer-events-none">
               {formatRelativeTime(new Date(chat.updated_at))}
             </p>
           )}
@@ -85,7 +83,7 @@ const ChatList: React.FC<ChatListProps> = ({
               trigger={
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="ml-1 inline-flex h-4 w-4 p-0 items-center justify-center lg:hover:bg-red-900/30 rounded transition-colors duration-200 hidden lg:group-hover:inline-flex group-focus-within:inline-flex"
+                  className="ml-1 inline-flex h-4 w-4 p-0 items-center justify-center lg:hover:bg-red-900/30 rounded transition-all duration-200 opacity-0 lg:group-hover:opacity-100 pointer-events-none lg:group-hover:pointer-events-auto"
                   title="Delete"
                   type="button"
                 >

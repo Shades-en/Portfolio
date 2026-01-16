@@ -1,45 +1,55 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatSidebar from '@/components/chat/sidebar/ChatSidebar';
 import ChatHeader from '@/components/chat/header/ChatHeader';
 import ChatMessages from '@/components/chat/message/ChatMessages';
+import ChatInput from './message/ChatInput';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  fetchMessagesRequest,
   setCurrentSession,
   hydrateUserAndSessions,
+  hydrateMessages,
+  resetMessages,
   setResponsiveState,
-  createTemporarySession,
 } from '@/store/slices/chatSlice';
-import type { User, SessionsResponse } from '@/types/chat';
+import type { User, SessionsResponse, MessagesResponse } from '@/types/chat';
 
 interface ChatProps {
-  readonly isNewUser: boolean;
   readonly user: User | null;
   readonly sessionsData: SessionsResponse | null;
+  readonly messagesData?: MessagesResponse | null;
+  readonly sessionId?: string;
 }
 
-export default function Chat({ isNewUser, user, sessionsData }: ChatProps): React.ReactElement {
+export default function Chat({ 
+  user, 
+  sessionsData, 
+  messagesData, 
+  sessionId
+}: ChatProps): React.ReactElement {
   const dispatch = useAppDispatch();
-  const { sessions, temporarySessions, currentSessionId, isTablet, isMobile } = useAppSelector((state) => state.chat);
+  const { isTablet, isMobile } = useAppSelector((state) => state.chat);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!isNewUser && (user || sessionsData)) {
+    if (user || sessionsData) {
       dispatch(hydrateUserAndSessions({ user, sessionsData }));
     }
-  }, [dispatch, isNewUser, user, sessionsData]);
+  }, [dispatch, user, sessionsData]);
 
   useEffect(() => {
-    if (sessions.length > 0 && !currentSessionId) {
-      const mostRecentSession = sessions[0];
-      dispatch(setCurrentSession(mostRecentSession.id));
-      dispatch(fetchMessagesRequest({ sessionId: mostRecentSession.id, page: 1, pageSize: 50 }));
-    } else if (sessions.length === 0 && temporarySessions.length === 0) {
-      dispatch(createTemporarySession());
+    if (sessionId) {
+      dispatch(setCurrentSession(sessionId));
+      if (messagesData) {
+        dispatch(hydrateMessages(messagesData));
+      }
+    } else {
+      dispatch(resetMessages());
+      dispatch(setCurrentSession(''));
     }
-  }, [sessions, temporarySessions, currentSessionId, dispatch]);
+  }, [dispatch, sessionId, messagesData]);
+
 
   useEffect(() => {
     const handleResize = (): void => {
@@ -68,7 +78,11 @@ export default function Chat({ isNewUser, user, sessionsData }: ChatProps): Reac
         <ChatHeader
           onMenuClick={() => setSidebarCollapsed(false)}
         />
-        <ChatMessages />
+        {sessionId ? <ChatMessages /> : 
+          <div className="flex-1 flex flex-col min-h-0 relative overscroll-none">
+            <ChatInput newChat={true} />
+          </div>
+        }
       </div>
     </div>
   );

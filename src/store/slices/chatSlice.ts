@@ -4,7 +4,6 @@ import type { User, Session, Message, SessionsResponse, MessagesResponse } from 
 interface ChatState {
   readonly user: User | null;
   readonly sessions: Session[];
-  readonly temporarySessions: Session[];
   readonly sessionsCount: number;
   readonly currentSessionId: string | null;
   readonly messages: Message[];
@@ -44,7 +43,6 @@ interface ChatState {
 const initialState: ChatState = {
   user: null,
   sessions: [],
-  temporarySessions: [],
   sessionsCount: 0,
   currentSessionId: null,
   messages: [],
@@ -185,39 +183,22 @@ const chatSlice = createSlice({
       }
     },
 
+    hydrateMessages: (state, action: PayloadAction<MessagesResponse>) => {
+      state.messages = action.payload.results as Message[];
+      state.messagesCount = action.payload.count;
+      state.pagination.messages.page = action.payload.page;
+      state.pagination.messages.pageSize = action.payload.page_size;
+      state.pagination.messages.totalPages = action.payload.total_pages;
+      state.pagination.messages.totalCount = action.payload.total_count;
+      state.pagination.messages.hasNext = action.payload.has_next;
+      state.pagination.messages.hasPrevious = action.payload.has_previous;
+      state.loading.messages = false;
+      state.error.messages = null;
+    },
+
     setResponsiveState: (state, action: PayloadAction<{ readonly isTablet: boolean; readonly isMobile: boolean }>) => {
       state.isTablet = action.payload.isTablet;
       state.isMobile = action.payload.isMobile;
-    },
-
-    createTemporarySession: (state) => {
-      if (state.temporarySessions.length > 0) {
-        return;
-      }
-      const tempSession: Session = {
-        id: `temp-${Date.now()}`,
-        name: 'New Chat',
-        latest_turn_number: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        starred: false,
-      };
-      state.temporarySessions = [tempSession];
-      state.currentSessionId = tempSession.id;
-      state.messages = [];
-      state.messagesCount = 0;
-    },
-
-    replaceTemporarySession: (state, action: PayloadAction<{ readonly tempId: string; readonly realSession: Session }>) => {
-      state.temporarySessions = state.temporarySessions.filter(s => s.id !== action.payload.tempId);
-      state.sessions = [action.payload.realSession, ...state.sessions];
-      if (state.currentSessionId === action.payload.tempId) {
-        state.currentSessionId = action.payload.realSession.id;
-      }
-    },
-
-    removeTemporarySession: (state, action: PayloadAction<string>) => {
-      state.temporarySessions = state.temporarySessions.filter(s => s.id !== action.payload);
     },
 
     resetChat: () => initialState,
@@ -234,10 +215,8 @@ export const {
   setCurrentSession,
   resetMessages,
   hydrateUserAndSessions,
+  hydrateMessages,
   setResponsiveState,
-  createTemporarySession,
-  replaceTemporarySession,
-  removeTemporarySession,
   resetChat,
 } = chatSlice.actions;
 

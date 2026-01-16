@@ -9,8 +9,7 @@ import ChatSearchDialog from './ChatSearchDialog';
 import SidebarLogo from './SidebarLogo';
 import SidebarToggle from './SidebarToggle';
 import NewChatButton from './NewChatButton';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setCurrentSession, fetchMessagesRequest } from '@/store/slices/chatSlice';
+import { useAppSelector } from '@/store/hooks';
 
 interface ChatSidebarProps {
   collapsed: boolean;
@@ -18,13 +17,12 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange }) => {
-  const dispatch = useAppDispatch();
-  const { isTablet, isMobile, sessions, temporarySessions, currentSessionId } = useAppSelector((state) => state.chat);
+  const { sessions, currentSessionId, isTablet, isMobile } = useAppSelector((state) => state.chat);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [opacityAnimationClasses, setOpacityAnimationClasses] = useState('transition-opacity duration-100 opacity-100');
 
-  const allSessions = [...temporarySessions, ...sessions];
+  const allSessions = sessions;
   
   const filteredChats = allSessions
     .filter(session => session.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -32,17 +30,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
   const starredChats = allSessions
     .filter(session => session.starred);
     
-  const handleChatClick = (sessionId: string): void => {
-    dispatch(setCurrentSession(sessionId));
-    const isTemporary = sessionId.startsWith('temp-');
-    if (!isTemporary) {
-      dispatch(fetchMessagesRequest({ sessionId, page: 1, pageSize: 50 }));
-    }
-    if (isMobile || isTablet) {
-      onCollapsedChange(true);
-    }
-  };
-
   const handleDeleteChat = (id: string, e?: React.MouseEvent): void => {
     if (e) e.stopPropagation();
   };
@@ -145,7 +132,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
                         key={session.id}
                         chat={session}
                         isActive={session.id === currentSessionId}
-                        onClick={() => handleChatClick(session.id)}
                         onDelete={(id) => handleDeleteChat(id)}
                         showTimestamp
                       />
@@ -163,7 +149,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
                         key={session.id}
                         chat={session}
                         isActive={session.id === currentSessionId}
-                        onClick={() => handleChatClick(session.id)}
                         onDelete={(id) => handleDeleteChat(id)}
                         showTimestamp
                       />

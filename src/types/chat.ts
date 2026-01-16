@@ -27,7 +27,7 @@ export interface SessionsResponse {
 
 export interface Message {
   readonly id: string;
-  readonly role: 'human' | 'ai';
+  readonly role: 'human' | 'ai' | 'tool';
   readonly response_id: string | null;
   readonly tool_call_id: string;
   readonly metadata: Record<string, any>;

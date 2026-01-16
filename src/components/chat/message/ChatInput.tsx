@@ -21,7 +21,7 @@ const QUICK_SUGGESTIONS = [
 
 const ChatInput: React.FC<ChatInputProps> = ({ 
   onSendMessage,
-  newChat = false
+  newChat = false,
 }) => {
   const { isMobile, loading } = useAppSelector((state) => state.chat);
   const isLoading = loading.messages;
@@ -138,7 +138,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           </div>
         </div>
         {/* Quick Suggestions */}
-        {showSuggestions && newChat && (
+        {newChat && showSuggestions && (
           <div className="grid grid-cols-1 sm:place-items-start place-items-center sm:grid-cols-2 gap-2 flex w-full justify-center sm:mt-2 mt-10">
             {QUICK_SUGGESTIONS.map((suggestion) => (
               <button
