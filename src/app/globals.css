@@ -95,6 +95,10 @@ All colors MUST be HSL for consistency.
     --chat-background-hard: hsl(222, 34%, 10%);
     --chat-header: linear-gradient(to bottom, hsl(222, 34%, 10%) 0%, hsla(222, 34%, 10%, 0.9) 80%, hsla(222, 34%, 10%, 0) 100%);
 
+    /* Code block colors */
+    --code-block-bg: 222 47% 7%;
+    --code-block-border: var(--primary) / 0.2;
+
     /* Shadows with electric blue glow */
     --shadow-glow: 0 0 40px hsla(197, 92%, 56%, 0.3);
     --shadow-card: 0 8px 32px hsla(222, 47%, 2%, 0.8);
@@ -435,6 +439,24 @@ All colors MUST be HSL for consistency.
     opacity: 1;
     visibility: visible;
   }
+}
+
+/* Streamdown code block styling */
+[data-streamdown="code-block"] {
+  background: hsl(var(--code-block-bg)) !important;
+  border: 1px solid hsl(var(--code-block-border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+[data-streamdown="inline-code"] {
+  background: hsl(var(--muted));
+  color: hsl(var(--accent));
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  border: 1px solid hsl(var(--code-block-border));
 }
 
 /* Focus styles */

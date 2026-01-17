@@ -23,7 +23,7 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message }) => {
   };
 
   return (
-    <div className="flex gap-6 animate-fade-in-up group relative justify-end mb-10">
+    <div className="flex gap-4 animate-fade-in-up group relative justify-end mb-10">
       <div className="flex flex-col gap-1 max-w-2xl items-end">
         <div
           className="px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-sm rounded-br-none"

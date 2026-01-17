@@ -32,11 +32,11 @@ const AIMessage: React.FC<AIMessageProps> = ({ message, isLastAIInTurn }) => {
   };
 
   return (
-    <div className="flex gap-6 animate-fade-in-up group relative justify-start mb-8">
+    <div className={`flex gap-6 animate-fade-in-up group relative justify-start ${isLastAIInTurn ? 'mb-12' : 'mb-4'}`}>
       <div className="flex flex-col gap-1 max-w-2xl items-start">
         <div className="px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-sm text-foreground rounded-bl-none">
           <div className="text-sm leading-relaxed prose prose-invert max-w-none chat-ai-markdown">
-            <Streamdown>{message.content}</Streamdown>
+            <Streamdown shikiTheme={["dracula", "dracula"]}>{message.content}</Streamdown>
           </div>
         </div>
 
