@@ -2,15 +2,30 @@ import React, { useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown, Edit2, Star, Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { toggleStarSessionRequest, deleteSessionRequest } from '@/store/slices/chatSlice';
 
 interface ChatOptionsMenuProps {
   readonly onRename: () => void;
-  readonly onDelete?: () => void;
   readonly className?: string;
 }
 
-const ChatOptionsMenu: React.FC<ChatOptionsMenuProps> = ({ onRename, onDelete, className }) => {
+const ChatOptionsMenu: React.FC<ChatOptionsMenuProps> = ({ onRename, className }) => {
+  const dispatch = useAppDispatch();
+  const { currentSession } = useAppSelector((state) => state.chat);
   const [open, setOpen] = useState<boolean>(false);
+
+  const handleStarToggle = (): void => {
+    if (currentSession) {
+      dispatch(toggleStarSessionRequest({ sessionId: currentSession.id, starred: !currentSession.starred }));
+    }
+  };
+
+  const handleDeleteChat = (): void => {
+    if (currentSession) {
+      dispatch(deleteSessionRequest({ sessionId: currentSession.id }));
+    }
+  };
 
   return (
     <DropdownMenu.Root open={open} onOpenChange={setOpen}>
@@ -23,9 +38,18 @@ const ChatOptionsMenu: React.FC<ChatOptionsMenuProps> = ({ onRename, onDelete, c
         </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content className="bg-[var(--chat-foreground)] border border-primary/20 rounded-lg shadow-lg z-50 w-40" sideOffset={8}>
-        <DropdownMenu.Item className="flex items-center gap-3 px-4 py-2.5 text-foreground hover:bg-primary/10 transition-colors text-sm rounded-md cursor-pointer outline-none">
-          <Star size={16} className="text-muted-foreground" />
-          <span>Star</span>
+        <DropdownMenu.Item
+          asChild
+          onSelect={(e) => {
+            e.preventDefault();
+            setOpen(false);
+            setTimeout(() => handleStarToggle(), 120);
+          }}
+        >
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-foreground hover:bg-primary/10 transition-colors text-sm rounded-md cursor-pointer outline-none">
+            <Star size={16} className={currentSession?.starred ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground'} />
+            <span>{currentSession?.starred ? 'Unstar' : 'Star'}</span>
+          </button>
         </DropdownMenu.Item>
         <DropdownMenu.Item
           asChild
@@ -53,7 +77,7 @@ const ChatOptionsMenu: React.FC<ChatOptionsMenuProps> = ({ onRename, onDelete, c
               title="Delete this chat?"
               description="This action cannot be undone."
               confirmLabel="Delete"
-              onConfirm={() => onDelete?.()}
+              onConfirm={handleDeleteChat}
             />
           </div>
         </DropdownMenu.Item>

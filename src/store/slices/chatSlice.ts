@@ -5,7 +5,7 @@ interface ChatState {
   readonly user: User | null;
   readonly sessions: Session[];
   readonly sessionsCount: number;
-  readonly currentSessionId: string | null;
+  readonly currentSession: Session | null;
   readonly messages: Message[];
   readonly messagesCount: number;
   readonly isTablet: boolean;
@@ -44,7 +44,7 @@ const initialState: ChatState = {
   user: null,
   sessions: [],
   sessionsCount: 0,
-  currentSessionId: null,
+  currentSession: null,
   messages: [],
   messagesCount: 0,
   isTablet: false,
@@ -116,7 +116,6 @@ const chatSlice = createSlice({
     fetchMessagesRequest: (state, action: PayloadAction<{ readonly sessionId: string; readonly page: number; readonly pageSize: number }>) => {
       state.loading.messages = true;
       state.error.messages = null;
-      state.currentSessionId = action.payload.sessionId;
       state.pagination.messages.page = action.payload.page;
       state.pagination.messages.pageSize = action.payload.pageSize;
     },
@@ -144,8 +143,8 @@ const chatSlice = createSlice({
       state.error.messages = action.payload;
     },
 
-    setCurrentSession: (state, action: PayloadAction<string>) => {
-      state.currentSessionId = action.payload;
+    setCurrentSession: (state, action: PayloadAction<Session | null>) => {
+      state.currentSession = action.payload;
       state.messages = [];
       state.messagesCount = 0;
       state.pagination.messages.page = 1;
@@ -153,6 +152,70 @@ const chatSlice = createSlice({
       state.pagination.messages.totalCount = 0;
       state.pagination.messages.hasNext = false;
       state.pagination.messages.hasPrevious = false;
+    },
+
+    updateSessionName: (state, action: PayloadAction<{ readonly sessionId: string; readonly name: string }>) => {
+      const sessionIndex = state.sessions.findIndex(s => s.id === action.payload.sessionId);
+      if (sessionIndex !== -1) {
+        state.sessions[sessionIndex] = {
+          ...state.sessions[sessionIndex],
+          name: action.payload.name,
+        };
+      }
+      if (state.currentSession?.id === action.payload.sessionId) {
+        state.currentSession = {
+          ...state.currentSession,
+          name: action.payload.name,
+        };
+      }
+    },
+
+    updateSessionStarred: (state, action: PayloadAction<{ readonly sessionId: string; readonly starred: boolean }>) => {
+      const sessionIndex = state.sessions.findIndex(s => s.id === action.payload.sessionId);
+      if (sessionIndex !== -1) {
+        state.sessions[sessionIndex] = {
+          ...state.sessions[sessionIndex],
+          starred: action.payload.starred,
+        };
+      }
+      if (state.currentSession?.id === action.payload.sessionId) {
+        state.currentSession = {
+          ...state.currentSession,
+          starred: action.payload.starred,
+        };
+      }
+    },
+
+    renameSessionRequest: (state, action: PayloadAction<{ readonly sessionId: string; readonly name: string }>) => {
+      // Saga will handle the API call
+    },
+
+    toggleStarSessionRequest: (state, action: PayloadAction<{ readonly sessionId: string; readonly starred: boolean }>) => {
+      // Saga will handle the API call
+    },
+
+    deleteSessionRequest: (state, action: PayloadAction<{ readonly sessionId: string }>) => {
+      // Saga will handle the API call
+    },
+
+    deleteAllSessionsRequest: (state) => {
+      // Saga will handle the API call
+    },
+
+    removeSession: (state, action: PayloadAction<{ readonly sessionId: string }>) => {
+      state.sessions = state.sessions.filter(s => s.id !== action.payload.sessionId);
+      if (state.currentSession?.id === action.payload.sessionId) {
+        state.currentSession = null;
+        state.messages = [];
+        state.messagesCount = 0;
+      }
+    },
+
+    clearAllSessions: (state) => {
+      state.sessions = [];
+      state.currentSession = null;
+      state.messages = [];
+      state.messagesCount = 0;
     },
 
     resetMessages: (state) => {
@@ -213,6 +276,14 @@ export const {
   fetchMessagesSuccess,
   fetchMessagesFailure,
   setCurrentSession,
+  updateSessionName,
+  updateSessionStarred,
+  renameSessionRequest,
+  toggleStarSessionRequest,
+  deleteSessionRequest,
+  deleteAllSessionsRequest,
+  removeSession,
+  clearAllSessions,
   resetMessages,
   hydrateUserAndSessions,
   hydrateMessages,

@@ -1,8 +1,8 @@
 import React from 'react';
 import { headers } from 'next/headers';
 import Chat from '@/components/chat/Chat';
-import { fetchUserServer, fetchSessionsServer, fetchMessagesServer } from '@/lib/api/chat-server';
-import type { User, SessionsResponse, MessagesResponse } from '@/types/chat';
+import { fetchUserServer, fetchSessionsServer, fetchCurrentSessionServer, fetchMessagesServer } from '@/lib/api/chat-server';
+import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
 
 interface ChatSessionPageProps {
   readonly params: Promise<{ sessionId: string }>;
@@ -15,12 +15,14 @@ export default async function ChatSessionPage({ params }: ChatSessionPageProps):
 
   let user: User | null = null;
   let sessionsData: SessionsResponse | null = null;
+  let currentSession: Session | null = null;
   let messagesData: MessagesResponse | null = null;
 
   if (!isNewUser) {
     const results = await Promise.allSettled([
       fetchUserServer(),
       fetchSessionsServer(1, 50),
+      fetchCurrentSessionServer(sessionId),
       fetchMessagesServer(sessionId, 1, 50),
     ]);
 
@@ -37,16 +39,22 @@ export default async function ChatSessionPage({ params }: ChatSessionPageProps):
     }
 
     if (results[2].status === 'fulfilled') {
-      messagesData = results[2].value;
+      currentSession = results[2].value;
     } else {
-      console.error('Failed to fetch messages:', results[2].reason);
+      console.error('Failed to fetch current session:', results[2].reason);
+    }
+
+    if (results[3].status === 'fulfilled') {
+      messagesData = results[3].value;
+    } else {
+      console.error('Failed to fetch messages:', results[3].reason);
     }
   }
 
   return <Chat 
     user={user} 
     sessionsData={sessionsData} 
-    messagesData={messagesData} 
-    sessionId={sessionId}
+    currentSession={currentSession}
+    messagesData={messagesData}
   />;
 }

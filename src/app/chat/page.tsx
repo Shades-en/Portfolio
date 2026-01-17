@@ -28,4 +28,4 @@ export default async function ChatPage(): Promise<React.ReactElement> {
 }
 
 // TODO 
-// incase of ai messages - tool - ai message -> order is getting messed up. Fix it.
+// implement useChat functionality and come up with an architecture for the chat

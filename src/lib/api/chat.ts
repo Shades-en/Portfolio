@@ -54,3 +54,69 @@ export async function fetchMessages(
     return null;
   }
 }
+
+export async function renameSession(sessionId: string, name: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/chat/sessions/${sessionId}/rename`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error renaming session:', error);
+    return false;
+  }
+}
+
+export async function toggleStarSession(sessionId: string, starred: boolean): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/chat/sessions/${sessionId}/starred`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ starred }),
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error toggling star session:', error);
+    return false;
+  }
+}
+
+export async function deleteSession(sessionId: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/chat/sessions/${sessionId}`, {
+      method: 'DELETE',
+      headers: {
+        'accept': 'application/json',
+      },
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error deleting session:', error);
+    return false;
+  }
+}
+
+export async function deleteAllSessions(): Promise<boolean> {
+  try {
+    const response = await fetch('/api/chat/sessions', {
+      method: 'DELETE',
+      headers: {
+        'accept': 'application/json',
+      },
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error deleting all sessions:', error);
+    return false;
+  }
+}

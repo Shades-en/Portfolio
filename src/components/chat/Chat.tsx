@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import ChatSidebar from '@/components/chat/sidebar/ChatSidebar';
 import ChatHeader from '@/components/chat/header/ChatHeader';
 import ChatMessages from '@/components/chat/message/ChatMessages';
 import ChatInput from './message/ChatInput';
+import SessionNotFound from './SessionNotFound';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   setCurrentSession,
@@ -13,24 +15,31 @@ import {
   resetMessages,
   setResponsiveState,
 } from '@/store/slices/chatSlice';
-import type { User, SessionsResponse, MessagesResponse } from '@/types/chat';
+import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
 
 interface ChatProps {
   readonly user: User | null;
   readonly sessionsData: SessionsResponse | null;
   readonly messagesData?: MessagesResponse | null;
-  readonly sessionId?: string;
+  readonly currentSession?: Session | null;
 }
 
 export default function Chat({ 
   user, 
   sessionsData, 
   messagesData, 
-  sessionId
+  currentSession
 }: ChatProps): React.ReactElement {
+  const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
+  const reduxCurrentSession = useAppSelector((state) => state.chat.currentSession);
   const { isTablet, isMobile } = useAppSelector((state) => state.chat);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const prevSessionIdRef = useRef<string | null>(null);
+  
+  const isOnSessionPage = pathname?.startsWith('/chat/') && pathname !== '/chat';
+  const sessionNotFound = isOnSessionPage && !currentSession;
 
   useEffect(() => {
     if (user || sessionsData) {
@@ -39,16 +48,16 @@ export default function Chat({
   }, [dispatch, user, sessionsData]);
 
   useEffect(() => {
-    if (sessionId) {
-      dispatch(setCurrentSession(sessionId));
+    if (currentSession) {
+      dispatch(setCurrentSession(currentSession));
       if (messagesData) {
         dispatch(hydrateMessages(messagesData));
       }
     } else {
       dispatch(resetMessages());
-      dispatch(setCurrentSession(''));
+      dispatch(setCurrentSession(null));
     }
-  }, [dispatch, sessionId, messagesData]);
+  }, [dispatch, currentSession, messagesData]);
 
 
   useEffect(() => {
@@ -68,6 +77,13 @@ export default function Chat({
     }
   }, [isTablet, isMobile]);
 
+  useEffect(() => {
+    if (prevSessionIdRef.current && !reduxCurrentSession && pathname?.startsWith('/chat/')) {
+      router.push('/chat');
+    }
+    prevSessionIdRef.current = reduxCurrentSession?.id || null;
+  }, [reduxCurrentSession, pathname, router]);
+
   return (
     <div className="h-[100dvh] flex overflow-hidden w-full" style={{ fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif' }}>
       <ChatSidebar
@@ -78,11 +94,15 @@ export default function Chat({
         <ChatHeader
           onMenuClick={() => setSidebarCollapsed(false)}
         />
-        {sessionId ? <ChatMessages /> : 
+        {sessionNotFound ? (
+          <SessionNotFound />
+        ) : currentSession ? (
+          <ChatMessages />
+        ) : (
           <div className="flex-1 flex flex-col min-h-0 relative overscroll-none">
             <ChatInput newChat={true} />
           </div>
-        }
+        )}
       </div>
     </div>
   );

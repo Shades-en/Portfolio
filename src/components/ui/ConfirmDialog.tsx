@@ -8,6 +8,8 @@ interface ConfirmDialogProps {
   readonly confirmLabel?: string;
   readonly cancelLabel?: string;
   readonly onConfirm: () => void;
+  readonly open?: boolean;
+  readonly onOpenChange?: (open: boolean) => void;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -17,13 +19,15 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   onConfirm,
+  open,
+  onOpenChange,
 }) => {
   return (
-    <AlertDialog.Root>
+    <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Trigger asChild>{trigger}</AlertDialog.Trigger>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 bg-black/50 z-[70]" />
-        <AlertDialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--chat-foreground)] border border-primary/20 rounded-lg shadow-lg z-[80] w-full max-w-sm p-5">
+        <AlertDialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[hsl(var(--secondary))] backdrop-blur-sm border border-primary/20 rounded-lg shadow-lg z-[80] w-full max-w-sm p-5">
           <AlertDialog.Title className="text-white text-base mb-1">{title}</AlertDialog.Title>
           {description && (
             <AlertDialog.Description className="text-slate-400 text-sm mb-4">

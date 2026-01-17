@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
-import { callBackendUser, callBackendSessions, callBackendMessages } from '@/lib/backend-api';
-import type { User, SessionsResponse, MessagesResponse } from '@/types/chat';
+import { callBackendUser, callBackendSessions, callBackendSession, callBackendMessages } from '@/lib/backend-api';
+import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
 
 export async function fetchUserServer(): Promise<User | null> {
   const cookieStore = await cookies();
@@ -31,6 +31,10 @@ export async function fetchSessionsServer(
   }
 
   return callBackendSessions(userCookie.value, page, pageSize);
+}
+
+export async function fetchCurrentSessionServer(sessionId: string): Promise<Session | null> {
+  return callBackendSession(sessionId);
 }
 
 export async function fetchMessagesServer(

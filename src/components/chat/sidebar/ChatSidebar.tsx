@@ -9,7 +9,8 @@ import ChatSearchDialog from './ChatSearchDialog';
 import SidebarLogo from './SidebarLogo';
 import SidebarToggle from './SidebarToggle';
 import NewChatButton from './NewChatButton';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { deleteAllSessionsRequest } from '@/store/slices/chatSlice';
 
 interface ChatSidebarProps {
   collapsed: boolean;
@@ -17,7 +18,8 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange }) => {
-  const { sessions, currentSessionId, isTablet, isMobile } = useAppSelector((state) => state.chat);
+  const dispatch = useAppDispatch();
+  const { sessions, currentSession, isTablet, isMobile } = useAppSelector((state) => state.chat);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [opacityAnimationClasses, setOpacityAnimationClasses] = useState('transition-opacity duration-100 opacity-100');
@@ -30,38 +32,17 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
   const starredChats = allSessions
     .filter(session => session.starred);
     
-  const handleDeleteChat = (id: string, e?: React.MouseEvent): void => {
-    if (e) e.stopPropagation();
-  };
-
-
   useEffect(() => {
     const prevailingOpacityClass = "transition-opacity duration-100"
     const opacityAnimationClassChange = collapsed ? 'opacity-0' : 'opacity-100';
     setOpacityAnimationClasses(prevailingOpacityClass + " " + opacityAnimationClassChange);
   }, [collapsed]);
 
-  const formatTime = (date: Date): string => {
-    const now = Date.now();
-    const t = new Date(date).getTime();
-    const diffSec = Math.max(0, Math.floor((now - t) / 1000));
-    if (diffSec < 60) return `${diffSec} sec ago`;
-    const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return `${diffMin} min ago`;
-    const diffHour = Math.floor(diffMin / 60);
-    if (diffHour < 24) return `${diffHour}h ago`;
-    const diffDay = Math.floor(diffHour / 24);
-    if (diffDay < 30) return `${diffDay}d ago`;
-    const diffMon = Math.floor(diffDay / 30);
-    if (diffMon < 12) return `${diffMon} mon ago`;
-    const diffYear = Math.floor(diffMon / 12);
-    return `${diffYear}y ago`;
-  };
-
   const logoSize = 16;
   const shadesLogoSize = 24;
 
   const handleClearHistory = (): void => {
+    dispatch(deleteAllSessionsRequest());
   };
 
   const widthClass: string = collapsed ? (isMobile ? 'w-0' : 'w-16') : 'w-64';
@@ -112,8 +93,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
                   searchQuery={searchQuery}
                   onSearchQueryChange={setSearchQuery}
                   items={filteredChats}
-                  onDelete={(id) => handleDeleteChat(id)}
-                  subtitleFor={formatTime}
                 />
               </div>
             </div>
@@ -131,8 +110,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
                       <ChatListItem
                         key={session.id}
                         chat={session}
-                        isActive={session.id === currentSessionId}
-                        onDelete={(id) => handleDeleteChat(id)}
+                        isActive={session.id === currentSession?.id}
                         showTimestamp
                       />
                     ))}
@@ -148,8 +126,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
                       <ChatListItem
                         key={session.id}
                         chat={session}
-                        isActive={session.id === currentSessionId}
-                        onDelete={(id) => handleDeleteChat(id)}
+                        isActive={session.id === currentSession?.id}
                         showTimestamp
                       />
                     ))}
