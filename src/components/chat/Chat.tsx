@@ -16,6 +16,9 @@ import {
   setResponsiveState,
 } from '@/store/slices/chatSlice';
 import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import { publicConfig } from '@/config';
 
 interface ChatProps {
   readonly user: User | null;
@@ -37,6 +40,11 @@ export default function Chat({
   const { isTablet, isMobile } = useAppSelector((state) => state.chat);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const prevSessionIdRef = useRef<string | null>(null);
+  // const { sendMessage, status, stop } = useChat({
+  //   transport: new DefaultChatTransport({
+  //     api: `${publicConfig.publicUrl}/api/chat/stream`,
+  //   }),
+  // });
   
   const isOnSessionPage = pathname?.startsWith('/chat/') && pathname !== '/chat';
   const sessionNotFound = isOnSessionPage && !currentSession;
@@ -97,10 +105,10 @@ export default function Chat({
         {sessionNotFound ? (
           <SessionNotFound />
         ) : currentSession ? (
-          <ChatMessages />
+          <ChatMessages/>
         ) : (
           <div className="flex-1 flex flex-col min-h-0 relative overscroll-none">
-            <ChatInput newChat={true} />
+            <ChatInput newChat={true}/>
           </div>
         )}
       </div>

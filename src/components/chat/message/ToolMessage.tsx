@@ -1,19 +1,27 @@
 import React from "react";
-import type { Message } from '@/types/chat';
 import ToolCallMessage from './ToolCallMessage';
 import ToolResponseMessage from './ToolResponseMessage';
+import type { ToolUIPart } from "ai";
 
 interface ToolMessageProps {
-  readonly message: Message;
-  readonly isAIToolCall?: boolean;
+  readonly toolPart: ToolUIPart;
 }
 
-const ToolMessage: React.FC<ToolMessageProps> = ({ message, isAIToolCall = false }) => {
-  if (isAIToolCall) {
-    return <ToolCallMessage message={message} />;
+const ToolMessage: React.FC<ToolMessageProps> = ({ toolPart }) => {
+  // Check if this is a tool part (type starts with "tool-")
+  if (!toolPart.type?.startsWith('tool-')) {
+    return null;
   }
-
-  return <ToolResponseMessage message={message} />;
+  
+  const hasOutput = toolPart.state === 'output-available' || toolPart.state === 'output-error';
+  const hasInput = toolPart.state === 'input-available' || toolPart.state === 'input-streaming';
+  
+  return (
+    <>
+      {(hasInput || hasOutput) && <ToolCallMessage toolPart={toolPart} />}
+      {hasOutput && <ToolResponseMessage toolPart={toolPart} />}
+    </>
+  );
 };
 
 export default ToolMessage;

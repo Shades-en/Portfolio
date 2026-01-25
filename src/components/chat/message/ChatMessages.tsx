@@ -5,7 +5,8 @@ import ChatMessageItem from './ChatMessageItem';
 import ChatInput from './ChatInput';
 import { useAppSelector } from '@/store/hooks';
 
-interface ChatMessagesProps {}
+interface ChatMessagesProps {
+}
 
 const ChatMessages: React.FC<ChatMessagesProps> = () => {
   const { messages } = useAppSelector((state) => state.chat);
@@ -34,21 +35,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
     }
   }, [messages]);
 
-  // Pre-calculate which messages are the last AI in their turn (O(n) instead of O(n²))
-  const lastAIMessageIds = React.useMemo(() => {
-    const lastAIPerTurn = new Map<number, string>();
-    
-    // Iterate backwards to find the last AI message for each turn
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const msg = messages[i];
-      if (msg.role === 'ai' && !lastAIPerTurn.has(msg.turn_number)) {
-        lastAIPerTurn.set(msg.turn_number, msg.id);
-      }
-    }
-    
-    return new Set(lastAIPerTurn.values());
-  }, [messages]);
-
   return (
     <div className="flex-1 flex flex-col min-h-0 relative overscroll-none">
       <div 
@@ -62,7 +48,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
                 <ChatMessageItem 
                   key={message.id} 
                   message={message}
-                  isLastAIInTurn={lastAIMessageIds.has(message.id)}
                 />
               ))}
             </>

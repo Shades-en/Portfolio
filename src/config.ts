@@ -5,3 +5,13 @@ export const publicConfig = {
 export const serverConfig = {
   backendApiUrl: process.env.BACKEND_API_URL || 'http://0.0.0.0:8000/api',
 } as const;
+
+export const chatConfig = {
+  questionTopics: [
+    'who I am',
+    'my projects',
+    'my experience',
+    'my skills',
+    'my accomplishments',
+  ],
+} as const;

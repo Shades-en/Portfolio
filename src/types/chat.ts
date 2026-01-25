@@ -1,3 +1,5 @@
+import { UIMessage } from "@ai-sdk/react";
+
 export interface User {
   readonly id?: string;
   readonly cookie_id: string;
@@ -25,18 +27,8 @@ export interface SessionsResponse {
   readonly results: readonly Session[];
 }
 
-export interface Message {
-  readonly id: string;
-  readonly role: 'human' | 'ai' | 'tool';
-  readonly response_id: string | null;
-  readonly tool_call_id: string;
-  readonly metadata: Record<string, any>;
-  readonly content: string;
-  readonly function_call: any;
-  readonly token_count: number;
+export interface Message extends UIMessage {
   readonly turn_number: number;
-  readonly error: boolean;
-  readonly order: number;
   readonly feedback: 'liked' | 'disliked' | null;
   readonly created_at: string;
 }

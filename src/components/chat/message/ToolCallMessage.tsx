@@ -1,32 +1,25 @@
 import React, { useState } from "react";
 import { Globe, ChevronDown, ChevronUp } from "lucide-react";
-import type { Message } from '@/types/chat';
+import type { ToolUIPart } from "ai";
 
 interface ToolCallMessageProps {
-  readonly message: Message;
+  readonly toolPart: ToolUIPart;
 }
 
-const ToolCallMessage: React.FC<ToolCallMessageProps> = ({ message }) => {
+const ToolCallMessage: React.FC<ToolCallMessageProps> = ({ toolPart }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const functionCall = message.function_call;
-  const functionName = functionCall?.name || 'Unknown';
   
-  let args = {};
-  try {
-    if (functionCall?.arguments) {
-      args = typeof functionCall.arguments === 'string' 
-        ? JSON.parse(functionCall.arguments) 
-        : functionCall.arguments;
-    }
-  } catch (e) {
-    console.error('Failed to parse function arguments:', e);
-    args = {};
-  }
-
+  // Extract function name from type (e.g., "tool-get_weather" -> "get_weather")
+  const functionName = toolPart.type.replace("tool-", "");
+  
+  // toolPart.input contains the function arguments
+  const args = toolPart.input || {};
   const argEntries = Object.entries(args);
   const hasArgs = argEntries.length > 0;
   const hasMultipleArgs = argEntries.length > 1;
+  
+  // Check if still streaming
+  const isStreaming = toolPart.state === 'input-streaming';
 
   return (
     <div className="flex gap-3 items-start mb-3 animate-fade-in-up">
@@ -41,7 +34,7 @@ const ToolCallMessage: React.FC<ToolCallMessageProps> = ({ message }) => {
           className="w-full text-left hover:opacity-80 transition-opacity"
         >
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-primary">Tool Called</span>
+            <span className="text-xs font-medium text-primary">{isStreaming ? 'Calling Tool...' : 'Tool Called'}</span>
             <span className="font-mono text-xs text-foreground">{functionName}</span>
             {hasArgs && !isExpanded && (
               <span className="text-xs text-muted-foreground">

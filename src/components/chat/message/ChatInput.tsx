@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ArrowUpRight, Paperclip, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowUpRight, Paperclip, Plus, CircleStop } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import RotatingText from '@/components/animation/RotatingText';
 import { useAppSelector } from '@/store/hooks';
+import { useChat } from '@ai-sdk/react';
+import { chatConfig } from '@/config';
 import '../chat.css';
 
 interface ChatInputProps {
-  readonly onSendMessage?: (message: string) => void;
   readonly newChat?: boolean;
 }
 
@@ -20,27 +21,21 @@ const QUICK_SUGGESTIONS = [
 ];
 
 const ChatInput: React.FC<ChatInputProps> = ({ 
-  onSendMessage,
   newChat = false,
 }) => {
-  const { isMobile, loading } = useAppSelector((state) => state.chat);
-  const isLoading = loading.messages;
+  const { isMobile } = useAppSelector((state) => state.chat);
   const [message, setMessage] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [showNewChatUI, setShowNewChatUI] = useState(newChat);
 
-  const questionTopics = [
-    'who I am',
-    'my projects',
-    'my experience',
-    'my skills',
-    'my accomplishments'
-  ]
+  const handleClick = (): void => {
+    handleSend();
+  };
 
   const handleSend = (): void => {
     if (message.trim()) {
-      onSendMessage?.(message);
       setMessage('');
       setShowSuggestions(false);
       if (textareaRef.current) {
@@ -76,14 +71,18 @@ const ChatInput: React.FC<ChatInputProps> = ({
     // hook for future file handling
   };
 
+  // useEffect(() => {
+  //   setShowNewChatUI(newChat && !['streaming', 'submitted'].includes(status));
+  // }, [newChat, status]);
+
 
   return (
-    <div className={`w-11/12 lg:5/6 mx-auto space-y-4 absolute ${newChat ? `inset-x-0 top-1/2 ${isMobile? '-translate-y-[55%]': '-translate-y-[65%]'} transform` : 'bottom-2 left-0 right-0'}`}>
-      {newChat && (
+    <div className={`w-11/12 lg:5/6 mx-auto space-y-4 absolute ${showNewChatUI ? `inset-x-0 top-1/2 ${isMobile? '-translate-y-[55%]': '-translate-y-[65%]'} transform` : 'bottom-2 left-0 right-0'}`}>
+      {showNewChatUI && (
         <div className='flex items-center gap-2 w-full justify-center my-10 sm:flex-row flex-col'>
           <h1 className="xl:text-4xl sm:text-3xl text-3xl font-light whitespace-nowrap"> Let's talk about</h1>
           <RotatingText
-            texts={questionTopics}
+            texts={[...chatConfig.questionTopics]}
             mainClassName="px-2 sm:px-2 md:px-2 xl:text-3xl sm:text-3xl text-3xl transition-all duration-1000 font-regular bg-primary/90 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
             staggerFrom={"last"}
             initial={{ y: "100%" }}
@@ -114,7 +113,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
               placeholder="What would you like to know?"
               className="w-full bg-transparent px-2 pt-2 text-foreground placeholder-muted-foreground resize-none outline-none leading-6 max-h-[384px] overflow-y-auto"
               rows={1}
-              disabled={isLoading}
             />
           </div>
           <div className="flex items-center justify-between gap-2">
@@ -127,10 +125,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
               <Paperclip size={18} />
             </button>
             <button
-              onClick={handleSend}
-              disabled={!message.trim() || isLoading}
+              onClick={handleClick}
+              disabled={!message.trim()}
               className="shrink-0 h-9 w-9 grid place-items-center rounded-xl bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-background transition-all hover:shadow-lg hover:shadow-primary/50 disabled:shadow-none"
-              title="Send message"
+              title='Send message'
               type="button"
             >
               <ArrowUpRight size={18} />
@@ -138,7 +136,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
           </div>
         </div>
         {/* Quick Suggestions */}
-        {newChat && showSuggestions && (
+        {showNewChatUI && showSuggestions && (
           <div className="grid grid-cols-1 sm:place-items-start place-items-center sm:grid-cols-2 gap-2 flex w-full justify-center sm:mt-2 mt-10">
             {QUICK_SUGGESTIONS.map((suggestion) => (
               <button

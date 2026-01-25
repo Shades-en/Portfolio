@@ -6,24 +6,15 @@ import ToolMessage from './ToolMessage';
 
 interface ChatMessageItemProps {
   readonly message: Message;
-  readonly isLastAIInTurn?: boolean;
 }
 
-const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message, isLastAIInTurn = false }) => {
-  const isAIToolCall = message.role === "ai" && 
-    typeof message?.tool_call_id === "string" && 
-    message.tool_call_id !== "null" && 
-    message.tool_call_id !== "";
-  if (message.role === 'human') {
+const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => {
+  if (message.role === 'user') {
     return <HumanMessage message={message} />;
   }
   
-  if (!isAIToolCall && message.role === 'ai') {
-    return <AIMessage message={message} isLastAIInTurn={isLastAIInTurn} />;
-  }
-  
-  if (message.role === 'tool' || isAIToolCall) {
-    return <ToolMessage message={message} isAIToolCall={isAIToolCall} />;
+  if (message.role === 'assistant') {
+    return <AIMessage message={message} />;
   }
   
   return null;

@@ -17,7 +17,12 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message }) => {
   };
 
   const handleCopy = (): void => {
-    navigator.clipboard.writeText(message.content);
+    // Extract all text content from parts
+    const textContent = message.parts
+      ?.filter((part: any) => part.type === 'text')
+      .map((part: any) => part.text)
+      .join('\n') || '';
+    navigator.clipboard.writeText(textContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -25,18 +30,26 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message }) => {
   return (
     <div className="flex gap-4 animate-fade-in-up group relative justify-end mb-10">
       <div className="flex flex-col gap-1 max-w-2xl items-end">
-        <div
-          className="px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-sm rounded-br-none"
-          style={{
-            background: 'var(--chat-message)',
-            color: "hsl(210, 40%, 98%)",
-            border: '1px solid hsl(var(--primary) / 0.12)'
-          }}
-        >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {message.content}
-          </p>
-        </div>
+        {message.parts?.map((part: any, index: number) => {
+          if (part.type === 'text') {
+            return (
+              <div
+                key={`${message.id}-text-${index}`}
+                className="px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-sm rounded-br-none"
+                style={{
+                  background: 'var(--chat-message)',
+                  color: "hsl(210, 40%, 98%)",
+                  border: '1px solid hsl(var(--primary) / 0.12)'
+                }}
+              >
+                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                  {part.text}
+                </p>
+              </div>
+            );
+          }
+          return null;
+        })}
       </div>
 
       <div className="flex-shrink-0 mt-1">
