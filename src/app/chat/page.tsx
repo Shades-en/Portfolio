@@ -26,8 +26,3 @@ export default async function ChatPage(): Promise<React.ReactElement> {
 
   return <Chat user={user} sessionsData={sessionsData} />;
 }
-
-// TODO 
-// implement useChat functionality and come up with an architecture for the chat - Might need to change message type or change UIMessage to customUIMessage
-
-// Define a global chat provider and use it - change message type to existing message type of ai sdk

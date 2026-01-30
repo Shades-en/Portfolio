@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ArrowUpRight, Paperclip, Plus, CircleStop } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import RotatingText from '@/components/animation/RotatingText';
 import { useAppSelector } from '@/store/hooks';
 import { useChat } from '@ai-sdk/react';
+import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { chatConfig } from '@/config';
 import '../chat.css';
 
@@ -23,7 +24,10 @@ const QUICK_SUGGESTIONS = [
 const ChatInput: React.FC<ChatInputProps> = ({ 
   newChat = false,
 }) => {
-  const { isMobile } = useAppSelector((state) => state.chat);
+  const { isMobile, currentSession, user } = useAppSelector((state) => state.chat);
+  const { chat } = useSharedChatContext();
+  const { status, sendMessage } = useChat({ chat });
+  const isBusy = status === 'streaming' || status === 'submitted';
   const [message, setMessage] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -31,16 +35,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const [showNewChatUI, setShowNewChatUI] = useState(newChat);
 
   const handleClick = (): void => {
-    handleSend();
+    void handleSend();
   };
 
-  const handleSend = (): void => {
-    if (message.trim()) {
-      setMessage('');
-      setShowSuggestions(false);
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
+  const handleSend = async (): Promise<void> => {
+    setMessage('');
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage || isBusy) {
+      return;
+    }
+
+    await sendMessage(
+      { text: trimmedMessage },
+      {
+        body: {
+          user_cookie: user?.cookie_id,
+          session_id: currentSession?.id,
+          user_id: user?.id,
+          new_chat: newChat,
+          new_user: !(user?.id)
+        }
       }
+    );
+    setShowSuggestions(false);
+    setShowNewChatUI(false);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
     }
   };
 
@@ -70,10 +90,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const handleFileChange = (_e: ChangeEvent<HTMLInputElement>): void => {
     // hook for future file handling
   };
-
-  // useEffect(() => {
-  //   setShowNewChatUI(newChat && !['streaming', 'submitted'].includes(status));
-  // }, [newChat, status]);
 
 
   return (
@@ -107,7 +123,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
               onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleSend();
+                  void handleSend();
                 }
               }}
               placeholder="What would you like to know?"
@@ -124,15 +140,26 @@ const ChatInput: React.FC<ChatInputProps> = ({
             >
               <Paperclip size={18} />
             </button>
-            <button
-              onClick={handleClick}
-              disabled={!message.trim()}
-              className="shrink-0 h-9 w-9 grid place-items-center rounded-xl bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-background transition-all hover:shadow-lg hover:shadow-primary/50 disabled:shadow-none"
-              title='Send message'
-              type="button"
-            >
-              <ArrowUpRight size={18} />
-            </button>
+            {isBusy ? (
+              <button
+                onClick={stop}
+                className="shrink-0 h-9 w-9 grid place-items-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
+                title="Stop generating"
+                type="button"
+              >
+                <CircleStop size={18} color='red'/>
+              </button>
+            ) : (
+              <button
+                onClick={handleClick}
+                disabled={!message.trim()}
+                className="shrink-0 h-9 w-9 grid place-items-center rounded-xl bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-background transition-all hover:shadow-lg hover:shadow-primary/50 disabled:shadow-none"
+                title='Send message'
+                type="button"
+              >
+                <ArrowUpRight size={18} />
+              </button>
+            )}
           </div>
         </div>
         {/* Quick Suggestions */}

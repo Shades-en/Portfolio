@@ -45,7 +45,17 @@ function* fetchMessagesSaga(
     const messagesData = (yield call(fetchMessages, sessionId, page, pageSize)) as MessagesResponse | null;
     
     if (messagesData) {
-      yield put(fetchMessagesSuccess(messagesData));
+      // Update pagination metadata in Redux
+      yield put(fetchMessagesSuccess({
+        page: messagesData.page,
+        pageSize: messagesData.page_size,
+        totalPages: messagesData.total_pages,
+        totalCount: messagesData.total_count,
+        hasNext: messagesData.has_next,
+        hasPrevious: messagesData.has_previous,
+      }));
+      // Note: Actual messages are synced to AI SDK in the component
+      // This saga only manages pagination metadata
     } else {
       yield put(fetchMessagesFailure('Failed to fetch messages'));
     }
@@ -121,11 +131,11 @@ function* deleteAllSessionsSaga(): Generator {
 }
 
 function* watchFetchSessions(): Generator {
-  yield takeLatest(fetchSessionsRequest.type, fetchSessionsSaga);
+  yield takeLatest(fetchSessionsRequest.type, fetchSessionsSaga); // need for client side pagination
 }
 
 function* watchFetchMessages(): Generator {
-  yield takeLatest(fetchMessagesRequest.type, fetchMessagesSaga);
+  yield takeLatest(fetchMessagesRequest.type, fetchMessagesSaga); // need for client side pagination
 }
 
 function* watchRenameSession(): Generator {

@@ -5,6 +5,8 @@ import { Settings, Menu } from 'lucide-react';
 import ChatOptionsMenu from './ChatOptionsMenu';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { renameSessionRequest } from '@/store/slices/chatSlice';
+import { useSharedChatContext } from '@/app/contexts/chat-context';
+import { useChat } from '@ai-sdk/react';
 
 interface ChatHeaderProps {
   readonly onMenuClick?: () => void;
@@ -12,7 +14,9 @@ interface ChatHeaderProps {
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick }) => {
   const dispatch = useAppDispatch();
-  const { isTablet, isMobile, messages, currentSession } = useAppSelector((state) => state.chat);
+  const { isTablet, isMobile, currentSession } = useAppSelector((state) => state.chat);
+  const { chat } = useSharedChatContext();
+  const { messages } = useChat({ chat });
   const newChat = messages.length === 0;
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(currentSession?.name || 'New Chat');
@@ -109,17 +113,17 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick }) => {
         }}
         ref={inputRef}
         autoFocus
-        className="bg-transparent text-white text-lg outline-none focus:border-primary px-1 min-w-3"
+        className="bg-transparent text-white text-sm sm:text-lg outline-none focus:border-primary px-1 min-w-3"
       />
     ) : (
-      <span onDoubleClick={handleDoubleClick} className="cursor-text text-white text-lg">
+      <span onDoubleClick={handleDoubleClick} className="cursor-text text-white text-sm sm:text-lg truncate max-w-[180px] sm:max-w-none">
         {editedTitle}
       </span>
     );
   };
 
   return (
-    <div className="px-6 py-4 absolute top-0 z-[2] w-full bg-[image:var(--chat-header)] sm:bg-none">
+    <div className="px-6 py-4 absolute top-0 z-[2] w-full bg-[image:var(--chat-header)]">
       {/* Mobile gradient overlay (opaque -> short fade) */}
       <div className="absolute inset-0 sm:hidden z-0 pointer-events-none" />
       <div className="w-full relative z-10 flex justify-between items-center">

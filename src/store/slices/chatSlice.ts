@@ -1,13 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { User, Session, Message, SessionsResponse, MessagesResponse } from '@/types/chat';
+import type { User, Session, SessionsResponse } from '@/types/chat';
 
 interface ChatState {
   readonly user: User | null;
   readonly sessions: Session[];
   readonly sessionsCount: number;
   readonly currentSession: Session | null;
-  readonly messages: Message[];
-  readonly messagesCount: number;
   readonly isTablet: boolean;
   readonly isMobile: boolean;
   readonly loading: {
@@ -45,8 +43,6 @@ const initialState: ChatState = {
   sessions: [],
   sessionsCount: 0,
   currentSession: null,
-  messages: [],
-  messagesCount: 0,
   isTablet: false,
   isMobile: false,
   loading: {
@@ -119,23 +115,9 @@ const chatSlice = createSlice({
       state.pagination.messages.page = action.payload.page;
       state.pagination.messages.pageSize = action.payload.pageSize;
     },
-    fetchMessagesSuccess: (state, action: PayloadAction<MessagesResponse>) => {
+    fetchMessagesSuccess: (state, action: PayloadAction<{ readonly page: number; readonly pageSize: number; readonly totalPages: number; readonly totalCount: number; readonly hasNext: boolean; readonly hasPrevious: boolean }>) => {
       state.loading.messages = false;
-      const newMessages = action.payload.results as Message[];
-      
-      if (action.payload.page === 1) {
-        state.messages = newMessages;
-      } else {
-        state.messages = [...state.messages, ...newMessages];
-      }
-      
-      state.messagesCount = action.payload.count;
-      state.pagination.messages.page = action.payload.page;
-      state.pagination.messages.pageSize = action.payload.page_size;
-      state.pagination.messages.totalPages = action.payload.total_pages;
-      state.pagination.messages.totalCount = action.payload.total_count;
-      state.pagination.messages.hasNext = action.payload.has_next;
-      state.pagination.messages.hasPrevious = action.payload.has_previous;
+      state.pagination.messages = action.payload;
       state.error.messages = null;
     },
     fetchMessagesFailure: (state, action: PayloadAction<string>) => {
@@ -145,8 +127,7 @@ const chatSlice = createSlice({
 
     setCurrentSession: (state, action: PayloadAction<Session | null>) => {
       state.currentSession = action.payload;
-      state.messages = [];
-      state.messagesCount = 0;
+      // Reset message pagination when switching sessions
       state.pagination.messages.page = 1;
       state.pagination.messages.totalPages = 0;
       state.pagination.messages.totalCount = 0;
@@ -206,28 +187,14 @@ const chatSlice = createSlice({
       state.sessions = state.sessions.filter(s => s.id !== action.payload.sessionId);
       if (state.currentSession?.id === action.payload.sessionId) {
         state.currentSession = null;
-        state.messages = [];
-        state.messagesCount = 0;
       }
     },
 
     clearAllSessions: (state) => {
       state.sessions = [];
       state.currentSession = null;
-      state.messages = [];
-      state.messagesCount = 0;
     },
 
-    resetMessages: (state) => {
-      state.messages = [];
-      state.messagesCount = 0;
-      state.pagination.messages.page = 1;
-      state.pagination.messages.totalPages = 0;
-      state.pagination.messages.totalCount = 0;
-      state.pagination.messages.hasNext = false;
-      state.pagination.messages.hasPrevious = false;
-      state.error.messages = null;
-    },
 
     hydrateUserAndSessions: (state, action: PayloadAction<{ readonly user: User | null; readonly sessionsData: SessionsResponse | null }>) => {
       if (action.payload.user) {
@@ -246,18 +213,6 @@ const chatSlice = createSlice({
       }
     },
 
-    hydrateMessages: (state, action: PayloadAction<MessagesResponse>) => {
-      state.messages = action.payload.results as Message[];
-      state.messagesCount = action.payload.count;
-      state.pagination.messages.page = action.payload.page;
-      state.pagination.messages.pageSize = action.payload.page_size;
-      state.pagination.messages.totalPages = action.payload.total_pages;
-      state.pagination.messages.totalCount = action.payload.total_count;
-      state.pagination.messages.hasNext = action.payload.has_next;
-      state.pagination.messages.hasPrevious = action.payload.has_previous;
-      state.loading.messages = false;
-      state.error.messages = null;
-    },
 
     setResponsiveState: (state, action: PayloadAction<{ readonly isTablet: boolean; readonly isMobile: boolean }>) => {
       state.isTablet = action.payload.isTablet;
@@ -284,9 +239,7 @@ export const {
   deleteAllSessionsRequest,
   removeSession,
   clearAllSessions,
-  resetMessages,
   hydrateUserAndSessions,
-  hydrateMessages,
   setResponsiveState,
   resetChat,
 } = chatSlice.actions;

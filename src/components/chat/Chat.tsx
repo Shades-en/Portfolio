@@ -11,14 +11,11 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   setCurrentSession,
   hydrateUserAndSessions,
-  hydrateMessages,
-  resetMessages,
   setResponsiveState,
 } from '@/store/slices/chatSlice';
 import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
+import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import { publicConfig } from '@/config';
 
 interface ChatProps {
   readonly user: User | null;
@@ -40,14 +37,12 @@ export default function Chat({
   const { isTablet, isMobile } = useAppSelector((state) => state.chat);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const prevSessionIdRef = useRef<string | null>(null);
-  // const { sendMessage, status, stop } = useChat({
-  //   transport: new DefaultChatTransport({
-  //     api: `${publicConfig.publicUrl}/api/chat/stream`,
-  //   }),
-  // });
   
   const isOnSessionPage = pathname?.startsWith('/chat/') && pathname !== '/chat';
   const sessionNotFound = isOnSessionPage && !currentSession;
+
+  const { chat } = useSharedChatContext();
+  const { setMessages } = useChat({ chat });
 
   useEffect(() => {
     if (user || sessionsData) {
@@ -58,14 +53,17 @@ export default function Chat({
   useEffect(() => {
     if (currentSession) {
       dispatch(setCurrentSession(currentSession));
-      if (messagesData) {
-        dispatch(hydrateMessages(messagesData));
+      if (messagesData?.results) {
+        // Use AI SDK to manage messages instead of Redux
+        // Message type extends UIMessage, so this is safe
+        setMessages([...messagesData.results] as any);
       }
     } else {
-      dispatch(resetMessages());
+      // Clear messages in AI SDK
+      setMessages([]);
       dispatch(setCurrentSession(null));
     }
-  }, [dispatch, currentSession, messagesData]);
+  }, [dispatch, currentSession, messagesData, setMessages]);
 
 
   useEffect(() => {
@@ -92,6 +90,22 @@ export default function Chat({
     prevSessionIdRef.current = reduxCurrentSession?.id || null;
   }, [reduxCurrentSession, pathname, router]);
 
+  const renderChatContent = () => {
+    if (sessionNotFound) {
+      return <SessionNotFound />;
+    }
+    
+    if (currentSession) {
+      return <ChatMessages />;
+    }
+    
+    return (
+      <div className="flex-1 flex flex-col min-h-0 relative overscroll-none">
+        <ChatInput newChat={true} />
+      </div>
+    );
+  };
+
   return (
     <div className="h-[100dvh] flex overflow-hidden w-full" style={{ fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif' }}>
       <ChatSidebar
@@ -102,16 +116,18 @@ export default function Chat({
         <ChatHeader
           onMenuClick={() => setSidebarCollapsed(false)}
         />
-        {sessionNotFound ? (
-          <SessionNotFound />
-        ) : currentSession ? (
-          <ChatMessages/>
-        ) : (
-          <div className="flex-1 flex flex-col min-h-0 relative overscroll-none">
-            <ChatInput newChat={true}/>
-          </div>
-        )}
+        {renderChatContent()}
       </div>
     </div>
   );
 }
+
+// # add loader in chat
+// # integrate other streaming related events in other components as well
+// Generate message id for user in frontend in chat input - should be a way to generate from useChat itself or send message frontend itself and not from preparemessage request
+// See why tool calls are not working - it is not even saving it in backend see why? - Maybe connection closing early? it is not waiting for input response to be generated? 
+//        Is it because function call responses are not recieved by frontend? Check with dev tools? 
+//        Is it because toolName is not recieved??
+
+// Some main issues which needs priority fixing.
+// 5. When i send new message screen should have it at top
