@@ -92,8 +92,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
 
+  const translateClass = isMobile ? '-translate-y-[55%]' : '-translate-y-[65%]';
+  const newChatClasses = `w-9/12 lg:5/6 mx-auto absolute inset-x-0 top-1/2 ${translateClass} transform`;
+  const existingChatClasses = 'w-11/12 mx-auto';
+  const containerClasses = `space-y-4 ${showNewChatUI ? newChatClasses : existingChatClasses}`;
+
   return (
-    <div className={`w-11/12 lg:5/6 mx-auto space-y-4 absolute ${showNewChatUI ? `inset-x-0 top-1/2 ${isMobile? '-translate-y-[55%]': '-translate-y-[65%]'} transform` : 'bottom-2 left-0 right-0'}`}>
+    <div className={containerClasses}>
       {showNewChatUI && (
         <div className='flex items-center gap-2 w-full justify-center my-10 sm:flex-row flex-col'>
           <h1 className="xl:text-4xl sm:text-3xl text-3xl font-light whitespace-nowrap"> Let's talk about</h1>

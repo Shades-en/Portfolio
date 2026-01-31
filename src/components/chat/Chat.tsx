@@ -35,7 +35,9 @@ export default function Chat({
   const dispatch = useAppDispatch();
   const reduxCurrentSession = useAppSelector((state) => state.chat.currentSession);
   const { isTablet, isMobile } = useAppSelector((state) => state.chat);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  // Initialize sidebar as collapsed on mobile/tablet to prevent flash on page load
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(true);
+  const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const prevSessionIdRef = useRef<string | null>(null);
   
   const isOnSessionPage = pathname?.startsWith('/chat/') && pathname !== '/chat';
@@ -73,13 +75,18 @@ export default function Chat({
       dispatch(setResponsiveState({ isTablet: tablet, isMobile: mobile }));
     };
     handleResize();
+    setIsHydrated(true);
     globalThis.window.addEventListener('resize', handleResize);
     return () => globalThis.window.removeEventListener('resize', handleResize);
   }, [dispatch]);
 
   useEffect(() => {
+    // On mobile/tablet: keep sidebar collapsed
+    // On desktop: expand sidebar
     if (isTablet || isMobile) {
       setSidebarCollapsed(true);
+    } else {
+      setSidebarCollapsed(false);
     }
   }, [isTablet, isMobile]);
 
@@ -108,10 +115,12 @@ export default function Chat({
 
   return (
     <div className="h-[100dvh] flex overflow-hidden w-full" style={{ fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif' }}>
-      <ChatSidebar
-        collapsed={sidebarCollapsed}
-        onCollapsedChange={setSidebarCollapsed}
-      />
+      {isHydrated && (
+        <ChatSidebar
+          collapsed={sidebarCollapsed}
+          onCollapsedChange={setSidebarCollapsed}
+        />
+      )}
       <div className="flex-1 flex flex-col bg-[image:var(--chat-background-alt)] min-h-0 relative overflow-hidden">
         <ChatHeader
           onMenuClick={() => setSidebarCollapsed(false)}
@@ -122,12 +131,9 @@ export default function Chat({
   );
 }
 
-// # add loader in chat
-// # integrate other streaming related events in other components as well
 // Generate message id for user in frontend in chat input - should be a way to generate from useChat itself or send message frontend itself and not from preparemessage request
 // See why tool calls are not working - it is not even saving it in backend see why? - Maybe connection closing early? it is not waiting for input response to be generated? 
 //        Is it because function call responses are not recieved by frontend? Check with dev tools? 
 //        Is it because toolName is not recieved??
 
 // Some main issues which needs priority fixing.
-// 5. When i send new message screen should have it at top

@@ -57,7 +57,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange 
         />
       )}
       <div
-        className={`${( isTablet || isMobile ) ? 'absolute z-50' : 'relative'} overflow-hidden border-r flex flex-col bg-[var(--chat-foreground)] h-full transition-all duration-200 ${widthClass}`}
+        className={`${( isTablet || isMobile ) ? 'fixed inset-y-0 left-0 z-[60]' : 'relative'} overflow-hidden border-r flex flex-col bg-[var(--chat-foreground)] h-full transition-all duration-200 ${widthClass}`}
       >
       <div className="px-4 pt-4 pb-0 mt-2">
         <div className="flex items-center justify-between gap-3 relative top-0 h-5">

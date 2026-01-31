@@ -75,7 +75,33 @@ textarea:hover::-webkit-scrollbar-thumb:hover {
   100% { transform: rotateX(-18deg) rotateY(360deg); }
 }
 
+/* Chat messages container scrollbar */
+.chat-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(210, 40%, 30%) transparent;
+}
+
+.chat-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scroll-container::-webkit-scrollbar-thumb {
+  background-color: hsl(210, 40%, 30%);
+  border-radius: 4px;
+}
+
+.chat-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(210, 40%, 40%);
+}
+
 .chat-ai-markdown {
+  max-width: 100%;
+  overflow-x: hidden;
+  
   p { margin: 0 0 0.3rem; }
   h1 { margin: 1rem 0 0.5rem; }
   h2 { margin: 0.875rem 0 0.5rem; }
@@ -83,4 +109,57 @@ textarea:hover::-webkit-scrollbar-thumb:hover {
   h4 { margin: 0.625rem 0 0.35rem; }
   h5 { margin: 0.5rem 0 0.3rem; }
   h6 { margin: 0.375rem 0 0.25rem; }
+  
+  /* Fix code blocks overflowing on mobile */
+  pre,
+  [data-rehype-pretty-code-figure],
+  .shiki,
+  [class*="code-block"] {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+    
+    /* Thin scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: hsl(210, 40%, 30%) transparent;
+  }
+  
+  /* Webkit scrollbar styling for code blocks */
+  pre::-webkit-scrollbar,
+  [data-rehype-pretty-code-figure]::-webkit-scrollbar,
+  .shiki::-webkit-scrollbar,
+  [class*="code-block"]::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  pre::-webkit-scrollbar-track,
+  [data-rehype-pretty-code-figure]::-webkit-scrollbar-track,
+  .shiki::-webkit-scrollbar-track,
+  [class*="code-block"]::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  pre::-webkit-scrollbar-thumb,
+  [data-rehype-pretty-code-figure]::-webkit-scrollbar-thumb,
+  .shiki::-webkit-scrollbar-thumb,
+  [class*="code-block"]::-webkit-scrollbar-thumb {
+    background-color: hsl(210, 40%, 30%);
+    border-radius: 3px;
+  }
+  
+  pre::-webkit-scrollbar-thumb:hover,
+  [data-rehype-pretty-code-figure]::-webkit-scrollbar-thumb:hover,
+  .shiki::-webkit-scrollbar-thumb:hover,
+  [class*="code-block"]::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(210, 40%, 40%);
+  }
+  
+  code {
+    word-break: break-word;
+  }
+  
+  pre code {
+    word-break: normal;
+    white-space: pre;
+  }
 }

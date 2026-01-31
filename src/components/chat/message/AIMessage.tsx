@@ -49,14 +49,14 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
   };
 
   return (
-    <div className="flex gap-6 animate-fade-in-up group relative justify-start mb-12">
-      <div className="flex flex-col gap-1 max-w-2xl items-start">
+    <div className="flex gap-6 animate-fade-in-up group relative justify-start mb-12 w-full overflow-hidden">
+      <div className="flex flex-col gap-1 max-w-full items-start overflow-hidden">
         {message.parts.map((part: any, index: number) => {
           if (part.type === 'text') {
             const isStreaming = part.state === 'streaming';
             return (
-              <div key={`${message.id}-text-${index}`} className="px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-sm text-foreground rounded-bl-none">
-                <div className="text-sm leading-relaxed prose prose-invert max-w-none chat-ai-markdown">
+              <div key={`${message.id}-text-${index}`} className="px-3 py-2 rounded-2xl transition-all duration-200 backdrop-blur-sm text-foreground rounded-bl-none w-full overflow-hidden">
+                <div className="text-sm leading-relaxed prose prose-invert max-w-none chat-ai-markdown overflow-x-auto">
                   <Streamdown 
                     shikiTheme={["github-dark", "github-dark"]} 
                     mode={isStreaming ? "streaming" : "static"}
