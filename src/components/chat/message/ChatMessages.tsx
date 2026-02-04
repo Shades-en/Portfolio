@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import ChatMessageItem from './ChatMessageItem';
 import ChatInput from './ChatInput';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { useChat } from '@ai-sdk/react';
+import { useChatTimeout } from '@/hooks/use-chat-timeout';
+import { useChatScroll } from '@/hooks/use-chat-scroll';
 
 interface ChatMessagesProps {
 }
@@ -12,10 +14,6 @@ interface ChatMessagesProps {
 const ChatMessages: React.FC<ChatMessagesProps> = () => {
   const { chat } = useSharedChatContext();
   const { messages, status } = useChat({ chat, experimental_throttle: 1 });
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const latestMessageRef = useRef<HTMLDivElement>(null);
-  const userMessageRef = useRef<HTMLDivElement>(null);
-  const hasInitialScrolled = useRef(false);
   const lastMessage = messages.at(-1);
   
   const hasAITextContent = React.useMemo(() => {
@@ -25,89 +23,19 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
     ) || false;
   }, [lastMessage]);
   
-  const showPlaceholder = lastMessage?.role === 'user' && !hasAITextContent;
+  const showPlaceholderBase = lastMessage?.role === 'user' && !hasAITextContent;
+  const { hasTimedOut } = useChatTimeout({ isWaiting: showPlaceholderBase });
+  const showPlaceholder = showPlaceholderBase && !hasTimedOut;
 
-  const scrollToUserMessage = React.useCallback(() => {
-    if (userMessageRef.current && scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const element = userMessageRef.current;
-      // Calculate position using getBoundingClientRect for accuracy
-      const containerRect = container.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-      // Current distance from element to container top + current scroll = absolute position
-      const scrollOffset = container.scrollTop + (elementRect.top - containerRect.top) - 70;
-      container.scrollTo({
-        top: Math.max(0, scrollOffset),
-        behavior: 'smooth'
-      });
-    }
-  }, []);
-
-  // Initial scroll to latest user message on page load (instant, not smooth)
-  // Uses MutationObserver to handle lazy-loaded code blocks
-  useEffect(() => {
-    if (hasInitialScrolled.current || messages.length === 0) return;
-    
-    const container = scrollContainerRef.current;
-    const element = userMessageRef.current;
-    if (!container || !element) return;
-
-    const scrollToLatestUserMessage = () => {
-      if (!scrollContainerRef.current || !userMessageRef.current) return;
-      const c = scrollContainerRef.current;
-      const el = userMessageRef.current;
-      const containerRect = c.getBoundingClientRect();
-      const elementRect = el.getBoundingClientRect();
-      const scrollOffset = c.scrollTop + (elementRect.top - containerRect.top) - 70;
-      c.scrollTo({
-        top: Math.max(0, scrollOffset),
-        behavior: 'instant'
-      });
-    };
-
-    // Initial scroll
-    requestAnimationFrame(scrollToLatestUserMessage);
-
-    // Use MutationObserver to detect DOM changes (lazy-loaded code blocks)
-    const observer = new MutationObserver(() => {
-      scrollToLatestUserMessage();
-    });
-
-    observer.observe(container, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      characterData: true
-    });
-
-    // Stop observing after 2 seconds (enough time for lazy content to load)
-    const timeoutId = setTimeout(() => {
-      observer.disconnect();
-      scrollToLatestUserMessage();
-      hasInitialScrolled.current = true;
-    }, 2000);
-
-    return () => {
-      observer.disconnect();
-      clearTimeout(timeoutId);
-    };
-  }, [messages.length]);
-
-  // Scroll when user sends a new message - smooth
-  useEffect(() => {
-    if (!hasInitialScrolled.current) return;
-    
-    const currentLastMessage = messages.at(-1);
-    if (!currentLastMessage) return;
-
-    if ((currentLastMessage.role === 'user' || showPlaceholder) && userMessageRef.current) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          scrollToUserMessage();
-        });
-      });
-    }
-  }, [messages.length, scrollToUserMessage, showPlaceholder]);
+  const {
+    scrollContainerRef,
+    latestMessageRef,
+    userMessageRef,
+  } = useChatScroll({
+    messagesLength: messages.length,
+    showPlaceholder,
+    lastMessageRole: lastMessage?.role,
+  });
 
   const renderMessages = () => {
     // Find the last user message index (for initial scroll on page load)
@@ -124,7 +52,8 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
       const isAIMessage = message.role === 'assistant';
       const isStreaming = status === 'streaming';
       const isCompleted = status === 'ready';
-      const shouldReserveSpace = isAIMessage && isLatest && (isStreaming || isCompleted);
+      const isErrorMessage = (message as any).metadata?.error === true;
+      const shouldReserveSpace = (isAIMessage && isLatest && (isStreaming || isCompleted)) || (isErrorMessage && isLatest);
       
       let messageStyle: React.CSSProperties | undefined;
       if (shouldReserveSpace) {
@@ -135,10 +64,16 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
       const isLastUserMessage = isUserMessage && index === lastUserMessageIndex;
       const shouldRefAI = !isUserMessage && isLatest && !showPlaceholder;
       
+      const getMessageRef = (): React.RefObject<HTMLDivElement> | undefined => {
+        if (isLastUserMessage) return userMessageRef;
+        if (shouldRefAI) return latestMessageRef;
+        return undefined;
+      };
+      
       return (
         <div
           key={message.id}
-          ref={isLastUserMessage ? userMessageRef : (shouldRefAI ? latestMessageRef : undefined)}
+          ref={getMessageRef()}
           className="py-2"
           style={messageStyle}
         >

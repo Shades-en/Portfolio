@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
-import { Copy, ThumbsUp, ThumbsDown, Check } from "lucide-react";
+import { Copy, ThumbsUp, ThumbsDown, Check, AlertCircle } from "lucide-react";
 import { Streamdown } from "streamdown";
 import type { Message } from '@/types/chat';
 import ToolMessage from './ToolMessage';
@@ -47,6 +47,27 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
       return part.state === 'done';
     });
   };
+
+  const isErrorMessage = (message as any).metadata?.error === true;
+
+  if (isErrorMessage) {
+    const textPart = message.parts?.find((part: any) => part.type === 'text') as { text?: string } | undefined;
+    const errorText = textPart?.text || 'An error occurred';
+    return (
+      <div className="flex gap-6 animate-fade-in-up group relative justify-start mb-12 w-full overflow-hidden">
+        <div className="flex flex-col gap-1 max-w-full items-start overflow-hidden">
+          <div className="px-4 py-3 rounded-2xl transition-all duration-200 backdrop-blur-sm rounded-bl-none w-full overflow-hidden border border-red-500/30 bg-red-500/10">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="text-sm leading-relaxed text-red-200">
+                {errorText}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-6 animate-fade-in-up group relative justify-start mb-12 w-full overflow-hidden">

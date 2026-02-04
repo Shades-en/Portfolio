@@ -9,10 +9,9 @@ import ChatInput from './message/ChatInput';
 import SessionNotFound from './SessionNotFound';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  setCurrentSession,
-  hydrateUserAndSessions,
-  setResponsiveState,
+  hydrateUserAndSessions, setCurrentSession, setResponsiveState 
 } from '@/store/slices/chatSlice';
+import { breakpoints } from '@/config';
 import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { useChat } from '@ai-sdk/react';
@@ -35,8 +34,7 @@ export default function Chat({
   const dispatch = useAppDispatch();
   const reduxCurrentSession = useAppSelector((state) => state.chat.currentSession);
   const { isTablet, isMobile } = useAppSelector((state) => state.chat);
-  // Initialize sidebar as collapsed on mobile/tablet to prevent flash on page load
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const prevSessionIdRef = useRef<string | null>(null);
   
@@ -70,11 +68,15 @@ export default function Chat({
 
   useEffect(() => {
     const handleResize = (): void => {
-      const tablet = globalThis.window !== undefined && globalThis.window.innerWidth < 950 && globalThis.window.innerWidth >= 640;
-      const mobile = globalThis.window !== undefined && globalThis.window.innerWidth < 640;
+      const width = globalThis.window?.innerWidth ?? 0;
+      const tablet = width < breakpoints.tablet && width >= breakpoints.mobile;
+      const mobile = width < breakpoints.mobile;
       dispatch(setResponsiveState({ isTablet: tablet, isMobile: mobile }));
     };
     handleResize();
+    // Set initial sidebar state based on screen size after hydration
+    const shouldCollapse = globalThis.window !== undefined && globalThis.window.innerWidth < breakpoints.tablet;
+    setSidebarCollapsed(shouldCollapse);
     setIsHydrated(true);
     globalThis.window.addEventListener('resize', handleResize);
     return () => globalThis.window.removeEventListener('resize', handleResize);
@@ -115,12 +117,11 @@ export default function Chat({
 
   return (
     <div className="h-[100dvh] flex overflow-hidden w-full" style={{ fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif' }}>
-      {isHydrated && (
-        <ChatSidebar
-          collapsed={sidebarCollapsed}
-          onCollapsedChange={setSidebarCollapsed}
-        />
-      )}
+      <ChatSidebar
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+        isHydrated={isHydrated}
+      />
       <div className="flex-1 flex flex-col bg-[image:var(--chat-background-alt)] min-h-0 relative overflow-hidden">
         <ChatHeader
           onMenuClick={() => setSidebarCollapsed(false)}
@@ -131,9 +132,9 @@ export default function Chat({
   );
 }
 
-// Generate message id for user in frontend in chat input - should be a way to generate from useChat itself or send message frontend itself and not from preparemessage request
 // See why tool calls are not working - it is not even saving it in backend see why? - Maybe connection closing early? it is not waiting for input response to be generated? 
 //        Is it because function call responses are not recieved by frontend? Check with dev tools? 
 //        Is it because toolName is not recieved??
+// New session UI aggregate
 
-// Some main issues which needs priority fixing.
+// When API not working then when i send message and i dont get response in X amount of time then show error message in UI atleast like time out or check internet connection

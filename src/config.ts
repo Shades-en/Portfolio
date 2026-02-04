@@ -14,4 +14,10 @@ export const chatConfig = {
     'my skills',
     'my accomplishments',
   ],
+  requestTimeoutMs: 10000, // 5 seconds timeout for chat requests
+} as const;
+
+export const breakpoints = {
+  mobile: 640,
+  tablet: 950,
 } as const;
