@@ -135,6 +135,7 @@ export default function Chat({
 // See why tool calls are not working - it is not even saving it in backend see why? - Maybe connection closing early? it is not waiting for input response to be generated? 
 //        Is it because function call responses are not recieved by frontend? Check with dev tools? 
 //        Is it because toolName is not recieved??
-// New session UI aggregate
+// New Chat UI to old chat and old chat to new chat
+// Pagination implementation
 
 // When API not working then when i send message and i dont get response in X amount of time then show error message in UI atleast like time out or check internet connection

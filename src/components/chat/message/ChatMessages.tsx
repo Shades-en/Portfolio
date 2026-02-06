@@ -1,20 +1,21 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ChatMessageItem from './ChatMessageItem';
 import ChatInput from './ChatInput';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { useChat } from '@ai-sdk/react';
-import { useChatTimeout } from '@/hooks/use-chat-timeout';
 import { useChatScroll } from '@/hooks/use-chat-scroll';
+import { toast } from '@/hooks/use-toast';
 
 interface ChatMessagesProps {
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = () => {
   const { chat } = useSharedChatContext();
-  const { messages, status } = useChat({ chat, experimental_throttle: 1 });
+  const { messages, status, error } = useChat({ chat, experimental_throttle: 1 });
   const lastMessage = messages.at(-1);
+  const hasShownErrorToast = useRef(false);
   
   const hasAITextContent = React.useMemo(() => {
     if (!lastMessage || lastMessage.role !== 'assistant') return false;
@@ -24,8 +25,23 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
   }, [lastMessage]);
   
   const showPlaceholderBase = lastMessage?.role === 'user' && !hasAITextContent;
-  const { hasTimedOut } = useChatTimeout({ isWaiting: showPlaceholderBase });
-  const showPlaceholder = showPlaceholderBase && !hasTimedOut;
+  const hasError = status === 'error' && error?.message?.includes('Failed to fetch');
+  const showPlaceholder = showPlaceholderBase && !hasError;
+
+  // Show toast when fetch error occurs
+  useEffect(() => {
+    if (hasError && !hasShownErrorToast.current) {
+      hasShownErrorToast.current = true;
+      toast({
+        title: 'Connection Issue',
+        description: 'Unable to reach the server. Please check your internet connection and try again.',
+        variant: 'warning',
+      });
+    }
+    if (!hasError) {
+      hasShownErrorToast.current = false;
+    }
+  }, [hasError]);
 
   const {
     scrollContainerRef,

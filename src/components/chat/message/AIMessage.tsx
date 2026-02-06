@@ -40,12 +40,11 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
     if (!message.parts?.length) {
       return false;
     }
-    return message.parts.every((part: any) => {
-      if (part?.state === undefined) {
-        return true;
-      }
-      return part.state === 'done';
-    });
+    const lastPart = message.parts.at(-1) as { state?: string } | undefined;
+    if (lastPart?.state === undefined) {
+      return true;
+    }
+    return lastPart.state === 'done';
   };
 
   const isErrorMessage = (message as any).metadata?.error === true;
@@ -69,8 +68,11 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
     );
   }
 
+  const lastPart = message.parts?.at(-1) as { type?: string } | undefined;
+  const endsWithToolCall = lastPart?.type?.startsWith('tool-');
+  
   return (
-    <div className="flex gap-6 animate-fade-in-up group relative justify-start mb-12 w-full overflow-hidden">
+    <div className={`flex gap-6 animate-fade-in-up group relative justify-start w-full overflow-hidden ${endsWithToolCall ? 'mb-4' : 'mb-12'}`}>
       <div className="flex flex-col gap-1 max-w-full items-start overflow-hidden">
         {message.parts.map((part: any, index: number) => {
           if (part.type === 'text') {
