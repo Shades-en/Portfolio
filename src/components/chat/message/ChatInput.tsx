@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import { ArrowUpRight, Paperclip, Plus, CircleStop } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import RotatingText from '@/components/animation/RotatingText';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useChat } from '@ai-sdk/react';
+import { bumpSessionToTop } from '@/store/slices/chatSlice';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { chatConfig } from '@/config';
 import '../chat.css';
@@ -24,6 +25,7 @@ const QUICK_SUGGESTIONS = [
 const ChatInput: React.FC<ChatInputProps> = ({ 
   newChat = false,
 }) => {
+  const dispatch = useAppDispatch();
   const { isMobile, currentSession, user } = useAppSelector((state) => state.chat);
   const { chat } = useSharedChatContext();
   const { status, sendMessage } = useChat({ chat });
@@ -45,6 +47,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
       return;
     }
 
+    if (currentSession?.id && !newChat) {
+      dispatch(bumpSessionToTop({ sessionId: currentSession.id }));
+    }
     await sendMessage(
       { text: trimmedMessage },
       {
