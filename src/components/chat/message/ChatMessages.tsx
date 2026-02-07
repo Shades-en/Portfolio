@@ -1,15 +1,18 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import { Loader2 } from 'lucide-react';
 import ChatMessageItem from './ChatMessageItem';
 import ChatInput from './ChatInput';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { useChat } from '@ai-sdk/react';
 import { useChatScroll } from '@/hooks/use-chat-scroll';
+import { useMessagePagination } from '@/hooks/use-message-pagination';
 import { toast } from '@/hooks/use-toast';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { updateSessionName } from '@/store/slices/chatSlice';
 import { fetchSession } from '@/lib/api/chat';
+import type { Message } from '@/types/chat';
 
 interface ChatMessagesProps {
 }
@@ -18,7 +21,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
   const dispatch = useAppDispatch();
   const { currentSession } = useAppSelector((state) => state.chat);
   const { chat } = useSharedChatContext();
-  const { messages, status, error } = useChat({ chat, experimental_throttle: 1 });
+  const { messages, status, error, setMessages } = useChat({ chat, experimental_throttle: 1 });
   const lastMessage = messages.at(-1);
   const hasShownErrorToast = useRef(false);
   const hasFetchedSessionName = useRef(false);
@@ -78,6 +81,17 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
     lastMessageRole: lastMessage?.role,
   });
 
+  const {
+    isLoadingMore,
+    hasMoreMessages,
+    loadMoreRef,
+    loadError,
+    retryLoadMore,
+  } = useMessagePagination({
+    scrollContainerRef,
+    setMessages: setMessages as (messages: Message[] | ((prev: Message[]) => Message[])) => void,
+  });
+
   const renderMessages = () => {
     // Find the last user message index (for initial scroll on page load)
     let lastUserMessageIndex = -1;
@@ -87,14 +101,43 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
         break;
       }
     }
+
+    const messageElements: React.ReactNode[] = [];
+
+    // Load more trigger at the top
+    if (hasMoreMessages) {
+      messageElements.push(
+        <div
+          key="load-more-trigger"
+          ref={loadMoreRef}
+          className="flex justify-center py-2"
+        >
+          {isLoadingMore && !loadError && (
+            <div className="p-2 rounded-full bg-primary/10 text-primary shadow-inner">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </div>
+          )}
+          {loadError && (
+            <button
+              type="button"
+              onClick={retryLoadMore}
+              className="flex items-center gap-2 text-xs px-3 py-1 rounded-full border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+            >
+              <Loader2 className="h-3 w-3" />
+              Retry loading older messages
+            </button>
+          )}
+        </div>
+      );
+    }
     
-    const messageElements = messages.map((message, index) => {
+    messages.forEach((message, index) => {
       const isLatest = index === messages.length - 1;
       const isAIMessage = message.role === 'assistant';
-      const isStreaming = status === 'streaming';
+      const isStreamingStatus = status === 'streaming';
       const isCompleted = status === 'ready';
       const isErrorMessage = (message as any).metadata?.error === true;
-      const shouldReserveSpace = (isAIMessage && isLatest && (isStreaming || isCompleted)) || (isErrorMessage && isLatest);
+      const shouldReserveSpace = (isAIMessage && isLatest && (isStreamingStatus || isCompleted)) || (isErrorMessage && isLatest);
       
       let messageStyle: React.CSSProperties | undefined;
       if (shouldReserveSpace) {
@@ -111,14 +154,14 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
         return undefined;
       };
       
-      return (
+      messageElements.push(
         <div
           key={message.id}
           ref={getMessageRef()}
           className="py-2"
           style={messageStyle}
         >
-          <ChatMessageItem message={message} isStreaming={isLatest && isStreaming} />
+          <ChatMessageItem message={message} isStreaming={isLatest && isStreamingStatus} />
         </div>
       );
     });

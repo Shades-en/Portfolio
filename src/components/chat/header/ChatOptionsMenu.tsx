@@ -3,7 +3,8 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown, Edit2, Star, Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { toggleStarSessionRequest, deleteSessionRequest } from '@/store/slices/chatSlice';
+import { toggleStarSessionRequest } from '@/store/slices/chatSlice';
+import { useOptimisticDeleteSession } from '@/hooks/use-optimistic-delete-session';
 
 interface ChatOptionsMenuProps {
   readonly onRename: () => void;
@@ -13,6 +14,7 @@ interface ChatOptionsMenuProps {
 const ChatOptionsMenu: React.FC<ChatOptionsMenuProps> = ({ onRename, className }) => {
   const dispatch = useAppDispatch();
   const { currentSession } = useAppSelector((state) => state.chat);
+  const { deleteSessionOptimistic } = useOptimisticDeleteSession();
   const [open, setOpen] = useState<boolean>(false);
 
   const handleStarToggle = (): void => {
@@ -23,7 +25,7 @@ const ChatOptionsMenu: React.FC<ChatOptionsMenuProps> = ({ onRename, className }
 
   const handleDeleteChat = (): void => {
     if (currentSession) {
-      dispatch(deleteSessionRequest({ sessionId: currentSession.id }));
+      void deleteSessionOptimistic(currentSession.id);
     }
   };
 

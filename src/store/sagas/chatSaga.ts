@@ -11,12 +11,10 @@ import {
   updateSessionName,
   toggleStarSessionRequest,
   updateSessionStarred,
-  deleteSessionRequest,
-  removeSession,
   deleteAllSessionsRequest,
   clearAllSessions,
 } from '@/store/slices/chatSlice';
-import { fetchSessions, fetchMessages, renameSession, toggleStarSession, deleteSession, deleteAllSessions } from '@/lib/api/chat';
+import { fetchSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions } from '@/lib/api/chat';
 import type { SessionsResponse, MessagesResponse } from '@/types/chat';
 
 function* fetchSessionsSaga(
@@ -99,23 +97,6 @@ function* toggleStarSessionSaga(
   }
 }
 
-function* deleteSessionSaga(
-  action: PayloadAction<{ readonly sessionId: string }>
-): Generator {
-  try {
-    const { sessionId } = action.payload;
-    const success = (yield call(deleteSession, sessionId)) as boolean;
-    
-    if (success) {
-      yield put(removeSession({ sessionId }));
-    } else {
-      console.error('Failed to delete session');
-    }
-  } catch (error) {
-    console.error('Error in delete session saga:', error);
-  }
-}
-
 function* deleteAllSessionsSaga(): Generator {
   try {
     const success = (yield call(deleteAllSessions)) as boolean;
@@ -146,10 +127,6 @@ function* watchToggleStarSession(): Generator {
   yield takeLatest(toggleStarSessionRequest.type, toggleStarSessionSaga);
 }
 
-function* watchDeleteSession(): Generator {
-  yield takeLatest(deleteSessionRequest.type, deleteSessionSaga);
-}
-
 function* watchDeleteAllSessions(): Generator {
   yield takeLatest(deleteAllSessionsRequest.type, deleteAllSessionsSaga);
 }
@@ -160,7 +137,6 @@ export default function* chatSaga(): Generator {
     watchFetchMessages(),
     watchRenameSession(),
     watchToggleStarSession(),
-    watchDeleteSession(),
     watchDeleteAllSessions(),
   ]);
 }

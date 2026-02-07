@@ -49,6 +49,7 @@ export function useChatScroll({
 
   // Initial scroll to latest user message on page load (instant, not smooth)
   // Uses MutationObserver to handle lazy-loaded code blocks
+  // Stops observing if user manually scrolls
   useEffect(() => {
     if (hasInitialScrolled.current || messagesLength === 0) return;
 
@@ -56,18 +57,37 @@ export function useChatScroll({
     const element = userMessageRef.current;
     if (!container || !element) return;
 
+    let isScrollingProgrammatically = false;
+    let userHasScrolled = false;
+
     const scrollToLatestUserMessage = (): void => {
+      if (userHasScrolled) return;
       if (!scrollContainerRef.current || !userMessageRef.current) return;
       const c = scrollContainerRef.current;
       const el = userMessageRef.current;
       const containerRect = c.getBoundingClientRect();
       const elementRect = el.getBoundingClientRect();
       const scrollOffset = c.scrollTop + (elementRect.top - containerRect.top) - SCROLL_OFFSET;
+      isScrollingProgrammatically = true;
       c.scrollTo({
         top: Math.max(0, scrollOffset),
         behavior: 'instant',
       });
+      requestAnimationFrame(() => {
+        isScrollingProgrammatically = false;
+      });
     };
+
+    const handleUserScroll = (): void => {
+      if (!isScrollingProgrammatically) {
+        userHasScrolled = true;
+        observer.disconnect();
+        container.removeEventListener('scroll', handleUserScroll);
+        hasInitialScrolled.current = true;
+      }
+    };
+
+    container.addEventListener('scroll', handleUserScroll);
 
     requestAnimationFrame(scrollToLatestUserMessage);
 
@@ -84,12 +104,16 @@ export function useChatScroll({
 
     const timeoutId = setTimeout(() => {
       observer.disconnect();
-      scrollToLatestUserMessage();
+      container.removeEventListener('scroll', handleUserScroll);
+      if (!userHasScrolled) {
+        scrollToLatestUserMessage();
+      }
       hasInitialScrolled.current = true;
     }, INITIAL_SCROLL_TIMEOUT);
 
     return () => {
       observer.disconnect();
+      container.removeEventListener('scroll', handleUserScroll);
       clearTimeout(timeoutId);
     };
   }, [messagesLength]);

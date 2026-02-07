@@ -175,10 +175,6 @@ const chatSlice = createSlice({
       // Saga will handle the API call
     },
 
-    deleteSessionRequest: (state, action: PayloadAction<{ readonly sessionId: string }>) => {
-      // Saga will handle the API call
-    },
-
     deleteAllSessionsRequest: (state) => {
       // Saga will handle the API call
     },
@@ -187,6 +183,17 @@ const chatSlice = createSlice({
       state.sessions = state.sessions.filter(s => s.id !== action.payload.sessionId);
       if (state.currentSession?.id === action.payload.sessionId) {
         state.currentSession = null;
+      }
+    },
+
+    restoreSession: (state, action: PayloadAction<{ readonly session: Session; readonly index: number; readonly wasCurrent: boolean }>) => {
+      if (action.payload.index < 0) {
+        state.sessions.unshift(action.payload.session);
+      } else {
+        state.sessions.splice(action.payload.index, 0, action.payload.session);
+      }
+      if (action.payload.wasCurrent) {
+        state.currentSession = action.payload.session;
       }
     },
 
@@ -263,9 +270,9 @@ export const {
   updateSessionStarred,
   renameSessionRequest,
   toggleStarSessionRequest,
-  deleteSessionRequest,
   deleteAllSessionsRequest,
   removeSession,
+  restoreSession,
   clearAllSessions,
   bumpSessionToTop,
   addNewSession,

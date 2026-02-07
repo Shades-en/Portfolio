@@ -9,7 +9,7 @@ import ChatInput from './message/ChatInput';
 import SessionNotFound from './SessionNotFound';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  hydrateUserAndSessions, setCurrentSession, setResponsiveState 
+  hydrateUserAndSessions, setCurrentSession, setResponsiveState, fetchMessagesSuccess 
 } from '@/store/slices/chatSlice';
 import { breakpoints } from '@/config';
 import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
@@ -58,6 +58,15 @@ export default function Chat({
         // Use AI SDK to manage messages instead of Redux
         // Message type extends UIMessage, so this is safe
         setMessages([...messagesData.results] as any);
+        // Initialize pagination state from server response
+        dispatch(fetchMessagesSuccess({
+          page: messagesData.page,
+          pageSize: messagesData.page_size,
+          totalPages: messagesData.total_pages,
+          totalCount: messagesData.total_count,
+          hasNext: messagesData.has_next,
+          hasPrevious: messagesData.has_previous,
+        }));
       }
     } else {
       // Clear messages in AI SDK
@@ -135,8 +144,8 @@ export default function Chat({
 }
 
 
-// Pagination implementation
-
-
+// Immediate concerns -
+// a. When changing session it should optimistically change -> move all fetch operations on client side and place a skeleteon loader to make up for smoothness
+// b. When clicking on new chat it should not refetch the sidebar sessions -> although its a new route loading, but only new session should be fetched and that too on client side so it should be very quick
 
 // In Future - Please decouple chat name from agent loop and instead expose a another api route for chat name and then send a parallel request to update it and get it.

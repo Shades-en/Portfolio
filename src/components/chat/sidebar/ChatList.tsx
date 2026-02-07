@@ -7,7 +7,8 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import { formatRelativeTime } from '@/lib/utils';
 import { useAppDispatch } from '@/store/hooks';
-import { toggleStarSessionRequest, deleteSessionRequest } from '@/store/slices/chatSlice';
+import { toggleStarSessionRequest } from '@/store/slices/chatSlice';
+import { useOptimisticDeleteSession } from '@/hooks/use-optimistic-delete-session';
 import type { Session } from '@/types/chat';
 
 interface ChatListProps {
@@ -26,6 +27,7 @@ const ChatList: React.FC<ChatListProps> = ({
   variant = 'default',
 }) => {
   const dispatch = useAppDispatch();
+  const { deleteSessionOptimistic } = useOptimisticDeleteSession();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleStarChat = (id: string, starred: boolean): void => {
@@ -33,7 +35,7 @@ const ChatList: React.FC<ChatListProps> = ({
   };
 
   const handleDeleteChat = (id: string): void => {
-    dispatch(deleteSessionRequest({ sessionId: id }));
+    void deleteSessionOptimistic(id);
     setShowDeleteDialog(false);
   };
   const baseWrapper = `group relative flex items-center px-3 py-1.5 rounded-lg transition-all duration-200 ${
