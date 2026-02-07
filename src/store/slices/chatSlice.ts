@@ -210,6 +210,20 @@ const chatSlice = createSlice({
       }
     },
 
+    addNewSession: (state, action: PayloadAction<{ readonly sessionId: string; readonly name: string }>) => {
+      const newSession: Session = {
+        id: action.payload.sessionId,
+        name: action.payload.name,
+        latest_turn_number: 0,
+        starred: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      state.sessions.unshift(newSession);
+      state.currentSession = newSession;
+      state.sessionsCount += 1;
+    },
+
     hydrateUserAndSessions: (state, action: PayloadAction<{ readonly user: User | null; readonly sessionsData: SessionsResponse | null }>) => {
       if (action.payload.user) {
         state.user = action.payload.user;
@@ -254,6 +268,7 @@ export const {
   removeSession,
   clearAllSessions,
   bumpSessionToTop,
+  addNewSession,
   hydrateUserAndSessions,
   setResponsiveState,
   resetChat,

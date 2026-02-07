@@ -39,7 +39,8 @@ export default function Chat({
   const prevSessionIdRef = useRef<string | null>(null);
   
   const isOnSessionPage = pathname?.startsWith('/chat/') && pathname !== '/chat';
-  const sessionNotFound = isOnSessionPage && !currentSession;
+  // Session is not found only if we're on a session page AND have neither props session nor Redux session
+  const sessionNotFound = isOnSessionPage && !currentSession && !reduxCurrentSession;
 
   const { chat } = useSharedChatContext();
   const { setMessages } = useChat({ chat });
@@ -104,7 +105,8 @@ export default function Chat({
       return <SessionNotFound />;
     }
     
-    if (currentSession) {
+    // Show ChatMessages if we have a session from props OR from Redux (new chat case)
+    if (currentSession || reduxCurrentSession) {
       return <ChatMessages />;
     }
     
@@ -133,5 +135,8 @@ export default function Chat({
 }
 
 
-// New Chat UI to old chat and old chat to new chat
 // Pagination implementation
+
+
+
+// In Future - Please decouple chat name from agent loop and instead expose a another api route for chat name and then send a parallel request to update it and get it.

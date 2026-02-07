@@ -1,4 +1,30 @@
-import type { SessionsResponse, MessagesResponse } from '@/types/chat';
+/**
+ * Client-side API functions for chat-related operations.
+ * These functions call Next.js API routes (in src/app/api/chat/*) which proxy requests to the backend.
+ */
+
+import type { Session, SessionsResponse, MessagesResponse } from '@/types/chat';
+
+export async function fetchSession(sessionId: string): Promise<Session | null> {
+  try {
+    const response = await fetch(`/api/chat/sessions/${sessionId}`, {
+      headers: {
+        'accept': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch session:', response.status);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching session:', error);
+    return null;
+  }
+}
 
 export async function fetchSessions(
   page: number = 1,

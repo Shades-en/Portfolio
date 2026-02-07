@@ -1,5 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deleteSession as deleteSessionFromBackend } from '@/lib/backend-api';
+import { deleteSession as deleteSessionFromBackend, callBackendSession } from '@/lib/backend-api';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ sessionId: string }> }
+): Promise<NextResponse> {
+  try {
+    const { sessionId } = await params;
+    const session = await callBackendSession(sessionId);
+
+    if (!session) {
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(session);
+  } catch (error) {
+    console.error('Error in get session API route:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
 
 export async function DELETE(
   request: NextRequest,

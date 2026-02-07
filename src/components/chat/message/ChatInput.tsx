@@ -6,9 +6,10 @@ import type { ChangeEvent } from 'react';
 import RotatingText from '@/components/animation/RotatingText';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useChat } from '@ai-sdk/react';
-import { bumpSessionToTop } from '@/store/slices/chatSlice';
+import { bumpSessionToTop, addNewSession } from '@/store/slices/chatSlice';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { chatConfig } from '@/config';
+import { generateObjectId } from '@/lib/utils';
 import '../chat.css';
 
 interface ChatInputProps {
@@ -47,15 +48,24 @@ const ChatInput: React.FC<ChatInputProps> = ({
       return;
     }
 
-    if (currentSession?.id && !newChat) {
-      dispatch(bumpSessionToTop({ sessionId: currentSession.id }));
+    let sessionId = currentSession?.id;
+
+    if (newChat) {
+      sessionId = generateObjectId();
+      dispatch(addNewSession({ sessionId, name: 'New Chat' }));
+      // Use replaceState to update URL without full page navigation
+      // This preserves the AI SDK chat context and avoids server-side fetch for non-existent session
+      window.history.replaceState(null, '', `/chat/${sessionId}`);
+    } else if (sessionId) {
+      dispatch(bumpSessionToTop({ sessionId }));
     }
+
     await sendMessage(
       { text: trimmedMessage },
       {
         body: {
           user_cookie: user?.cookie_id,
-          session_id: currentSession?.id,
+          session_id: sessionId,
           user_id: user?.id,
           new_chat: newChat,
           new_user: !(user?.id)
