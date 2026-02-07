@@ -38,6 +38,9 @@ function createChat() {
             query: textPart?.text ?? '',
             id: lastMessage?.id ?? '',
           },
+          options: {
+            api_type: 'responses'
+          }
         };
 
         return {
