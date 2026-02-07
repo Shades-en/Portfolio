@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Montserrat } from 'next/font/google';
 
@@ -15,12 +14,13 @@ const SidebarLogo: React.FC<SidebarLogoProps> = ({ className = '' }) => {
   return (
     <Link href="/" className={`flex items-center gap-2 ${className}`}>
       <div className="p-0.5 pr-0 flex-shrink-0">
-        <Image 
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img 
           src="/white-logo/android-chrome-512x512.png" 
           alt="Shades Icon" 
           width={shadesLogoSize} 
           height={shadesLogoSize} 
-          className="rounded-md" 
+          className="rounded-md"
         />
       </div>
       <div>

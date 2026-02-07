@@ -4,6 +4,7 @@ import { serverConfig } from '@/config';
 import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
 
 export const callBackendUser = cache(async (cookieId: string): Promise<User | null> => {
+  console.log('[backend-api] callBackendUser invoked');
   try {
     const response = await fetch(
       `${serverConfig.backendApiUrl}/users?cookie_id=${encodeURIComponent(cookieId)}`,
@@ -36,6 +37,7 @@ export const callBackendSessions = cache(async (
   page: number = 1,
   pageSize: number = 50
 ): Promise<SessionsResponse | null> => {
+  console.log('[backend-api] callBackendSessions invoked');
   try {
     const response = await fetch(
       `${serverConfig.backendApiUrl}/sessions?cookie_id=${encodeURIComponent(cookieId)}&page=${page}&page_size=${pageSize}`,
@@ -60,6 +62,7 @@ export const callBackendSessions = cache(async (
 });
 
 export const callBackendSession = cache(async (sessionId: string): Promise<Session | null> => {
+  console.log('[backend-api] callBackendSession invoked');
   try {
     const response = await fetch(
       `${serverConfig.backendApiUrl}/sessions/${sessionId}`,
@@ -91,6 +94,7 @@ export const callBackendMessages = cache(async (
   page: number = 1,
   pageSize: number = 50
 ): Promise<MessagesResponse | null> => {
+  console.log('[backend-api] callBackendMessages invoked');
   try {
     const response = await fetch(
       `${serverConfig.backendApiUrl}/sessions/${sessionId}/messages?page=${page}&page_size=${pageSize}`,
@@ -118,6 +122,7 @@ export const callBackendMessages = cache(async (
 });
 
 export async function renameSession(sessionId: string, newName: string): Promise<Session | null> {
+  console.log('[backend-api] renameSession invoked');
   try {
     const response = await fetch(
       `${serverConfig.backendApiUrl}/sessions/${sessionId}/name`,
@@ -145,6 +150,7 @@ export async function renameSession(sessionId: string, newName: string): Promise
 }
 
 export async function toggleStarSession(sessionId: string, starred: boolean): Promise<{ session_updated: boolean; session_id: string; starred: boolean } | null> {
+  console.log('[backend-api] toggleStarSession invoked');
   try {
     const response = await fetch(
       `${serverConfig.backendApiUrl}/sessions/${sessionId}/starred`,
@@ -172,6 +178,7 @@ export async function toggleStarSession(sessionId: string, starred: boolean): Pr
 }
 
 export async function deleteSession(sessionId: string): Promise<{ messages_deleted: number; summaries_deleted: number; session_deleted: boolean } | null> {
+  console.log('[backend-api] deleteSession invoked');
   try {
     const response = await fetch(
       `${serverConfig.backendApiUrl}/sessions/${sessionId}`,
@@ -197,6 +204,7 @@ export async function deleteSession(sessionId: string): Promise<{ messages_delet
 }
 
 export async function deleteAllSessions(userId: string): Promise<{ sessions_deleted: number; messages_deleted: number; summaries_deleted: number } | null> {
+  console.log('[backend-api] deleteAllSessions invoked');
   try {
     const response = await fetch(
       `${serverConfig.backendApiUrl}/sessions?user_id=${userId}`,

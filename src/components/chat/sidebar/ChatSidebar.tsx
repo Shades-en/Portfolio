@@ -66,7 +66,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
         className={`${( isTablet || isMobile ) ? 'fixed inset-y-0 left-0 z-[60]' : 'relative'} overflow-hidden border-r flex flex-col bg-[var(--chat-foreground)] h-full transition-all duration-200 ${widthClass} ${preHydrationHideClass}`}
       >
         <div className="px-4 pt-4 pb-0 mt-2">
-          <div className="flex items-center justify-between gap-3 relative top-0 h-5">
+          <div className="flex items-center justify-between gap-3 relative top-0 h-6">
             <SidebarLogo className={`absolute left-0 ${opacityAnimationClasses}`} />
             <SidebarToggle 
               collapsed={collapsed} 

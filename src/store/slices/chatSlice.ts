@@ -8,15 +8,18 @@ interface ChatState {
   readonly currentSession: Session | null;
   readonly isTablet: boolean;
   readonly isMobile: boolean;
+  readonly sidebarCollapsed: boolean;
   readonly loading: {
     readonly user: boolean;
     readonly sessions: boolean;
     readonly messages: boolean;
+    readonly currentSession: boolean;
   };
   readonly error: {
     readonly user: string | null;
     readonly sessions: string | null;
     readonly messages: string | null;
+    readonly currentSession: string | null;
   };
   readonly pagination: {
     readonly sessions: {
@@ -45,15 +48,18 @@ const initialState: ChatState = {
   currentSession: null,
   isTablet: false,
   isMobile: false,
+  sidebarCollapsed: false,
   loading: {
     user: false,
     sessions: false,
     messages: false,
+    currentSession: false,
   },
   error: {
     user: null,
     sessions: null,
     messages: null,
+    currentSession: null,
   },
   pagination: {
     sessions: {
@@ -127,12 +133,22 @@ const chatSlice = createSlice({
 
     setCurrentSession: (state, action: PayloadAction<Session | null>) => {
       state.currentSession = action.payload;
+      state.error.currentSession = null;
       // Reset message pagination when switching sessions
       state.pagination.messages.page = 1;
       state.pagination.messages.totalPages = 0;
       state.pagination.messages.totalCount = 0;
       state.pagination.messages.hasNext = false;
       state.pagination.messages.hasPrevious = false;
+    },
+
+    setLoadingCurrentSession: (state, action: PayloadAction<boolean>) => {
+      state.loading.currentSession = action.payload;
+    },
+
+    setCurrentSessionError: (state, action: PayloadAction<string | null>) => {
+      state.error.currentSession = action.payload;
+      state.loading.currentSession = false;
     },
 
     updateSessionName: (state, action: PayloadAction<{ readonly sessionId: string; readonly name: string }>) => {
@@ -231,7 +247,15 @@ const chatSlice = createSlice({
       state.sessionsCount += 1;
     },
 
-    hydrateUserAndSessions: (state, action: PayloadAction<{ readonly user: User | null; readonly sessionsData: SessionsResponse | null }>) => {
+    fetchInitialDataRequest: (state) => {
+      state.loading.user = true;
+      state.loading.sessions = true;
+    },
+
+    fetchInitialDataSuccess: (state, action: PayloadAction<{ readonly user: User | null; readonly sessionsData: SessionsResponse | null }>) => {
+      state.loading.user = false;
+      state.loading.sessions = false;
+      
       if (action.payload.user) {
         state.user = action.payload.user;
       }
@@ -248,10 +272,20 @@ const chatSlice = createSlice({
       }
     },
 
+    fetchInitialDataFailure: (state, action: PayloadAction<string>) => {
+      state.loading.user = false;
+      state.loading.sessions = false;
+      state.error.user = action.payload;
+    },
+
 
     setResponsiveState: (state, action: PayloadAction<{ readonly isTablet: boolean; readonly isMobile: boolean }>) => {
       state.isTablet = action.payload.isTablet;
       state.isMobile = action.payload.isMobile;
+    },
+
+    setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
+      state.sidebarCollapsed = action.payload;
     },
 
     resetChat: () => initialState,
@@ -266,6 +300,8 @@ export const {
   fetchMessagesSuccess,
   fetchMessagesFailure,
   setCurrentSession,
+  setLoadingCurrentSession,
+  setCurrentSessionError,
   updateSessionName,
   updateSessionStarred,
   renameSessionRequest,
@@ -276,8 +312,11 @@ export const {
   clearAllSessions,
   bumpSessionToTop,
   addNewSession,
-  hydrateUserAndSessions,
+  fetchInitialDataRequest,
+  fetchInitialDataSuccess,
+  fetchInitialDataFailure,
   setResponsiveState,
+  setSidebarCollapsed,
   resetChat,
 } = chatSlice.actions;
 

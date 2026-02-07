@@ -13,9 +13,12 @@ import {
   updateSessionStarred,
   deleteAllSessionsRequest,
   clearAllSessions,
+  fetchInitialDataRequest,
+  fetchInitialDataSuccess,
+  fetchInitialDataFailure,
 } from '@/store/slices/chatSlice';
-import { fetchSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions } from '@/lib/api/chat';
-import type { SessionsResponse, MessagesResponse } from '@/types/chat';
+import { fetchUser, fetchSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions } from '@/lib/api/chat';
+import type { User, SessionsResponse, MessagesResponse } from '@/types/chat';
 
 function* fetchSessionsSaga(
   action: PayloadAction<{ readonly page: number; readonly pageSize: number }>
@@ -131,6 +134,24 @@ function* watchDeleteAllSessions(): Generator {
   yield takeLatest(deleteAllSessionsRequest.type, deleteAllSessionsSaga);
 }
 
+function* fetchInitialDataSaga(): Generator {
+  try {
+    const [userData, sessionsData] = (yield all([
+      call(fetchUser),
+      call(fetchSessions, 1, 50),
+    ])) as [User | null, SessionsResponse | null];
+
+    yield put(fetchInitialDataSuccess({ user: userData, sessionsData }));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch initial data';
+    yield put(fetchInitialDataFailure(message));
+  }
+}
+
+function* watchFetchInitialData(): Generator {
+  yield takeLatest(fetchInitialDataRequest.type, fetchInitialDataSaga);
+}
+
 export default function* chatSaga(): Generator {
   yield all([
     watchFetchSessions(),
@@ -138,5 +159,6 @@ export default function* chatSaga(): Generator {
     watchRenameSession(),
     watchToggleStarSession(),
     watchDeleteAllSessions(),
+    watchFetchInitialData(),
   ]);
 }

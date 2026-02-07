@@ -1,7 +1,8 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { PenTool } from 'lucide-react';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setCurrentSession } from '@/store/slices/chatSlice';
 
 interface NewChatButtonProps {
   readonly className?: string;
@@ -10,10 +11,12 @@ interface NewChatButtonProps {
 
 const NewChatButton: React.FC<NewChatButtonProps> = ({ className = '', onCollapsedChange }) => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { isTablet, isMobile } = useAppSelector((state) => state.chat);
   const logoSize = 16;
 
   const handleNewChat = (): void => {
+    dispatch(setCurrentSession(null));
     router.push('/chat');
     if ((isMobile || isTablet) && onCollapsedChange) {
       onCollapsedChange(true);

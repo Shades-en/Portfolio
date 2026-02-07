@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Trash2, Star, MoreHorizontal } from 'lucide-react';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import { formatRelativeTime } from '@/lib/utils';
-import { useAppDispatch } from '@/store/hooks';
-import { toggleStarSessionRequest } from '@/store/slices/chatSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { toggleStarSessionRequest, setCurrentSession, setLoadingCurrentSession, setSidebarCollapsed } from '@/store/slices/chatSlice';
 import { useOptimisticDeleteSession } from '@/hooks/use-optimistic-delete-session';
 import type { Session } from '@/types/chat';
 
@@ -17,6 +17,7 @@ interface ChatListProps {
   readonly showTimestamp?: boolean;
   readonly subtitle?: string;
   readonly variant?: 'default' | 'search';
+  readonly onNavigate?: () => void;
 }
 
 const ChatList: React.FC<ChatListProps> = ({
@@ -25,8 +26,11 @@ const ChatList: React.FC<ChatListProps> = ({
   showTimestamp = true,
   subtitle,
   variant = 'default',
+  onNavigate,
 }) => {
+  const router = useRouter();
   const dispatch = useAppDispatch();
+  const { isTablet, isMobile } = useAppSelector((state) => state.chat);
   const { deleteSessionOptimistic } = useOptimisticDeleteSession();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -38,6 +42,18 @@ const ChatList: React.FC<ChatListProps> = ({
     void deleteSessionOptimistic(id);
     setShowDeleteDialog(false);
   };
+
+  const handleSessionClick = (e: React.MouseEvent): void => {
+    e.preventDefault();
+    dispatch(setLoadingCurrentSession(true));
+    dispatch(setCurrentSession(chat));
+    if (isTablet || isMobile) {
+      dispatch(setSidebarCollapsed(true));
+    }
+    onNavigate?.();
+    router.push(`/chat/${chat.id}`);
+  };
+
   const baseWrapper = `group relative flex items-center px-3 py-1.5 rounded-lg transition-all duration-200 ${
     isActive
       ? 'bg-slate-700/60 border border-slate-600 shadow-lg shadow-slate-900'
@@ -46,9 +62,10 @@ const ChatList: React.FC<ChatListProps> = ({
 
   return (
     <div className={baseWrapper}>
-      <Link
-        href={`/chat/${chat.id}`}
-        className={`${variant === 'search' ? 'flex-[0_1_92%]' : 'flex-1'} min-w-0 text-left bg-transparent focus:outline-none`}
+      <button
+        onClick={handleSessionClick}
+        className={`${variant === 'search' ? 'flex-[0_1_92%]' : 'flex-1'} min-w-0 text-left bg-transparent focus:outline-none cursor-pointer`}
+        type="button"
       >
         <div className="relative min-w-0">
           <p
@@ -68,7 +85,7 @@ const ChatList: React.FC<ChatListProps> = ({
             <p className="text-xs text-slate-500">{subtitle}</p>
           )}
         </div>
-      </Link>
+      </button>
 
       {variant === 'default' ? (
         <div className="w-10 flex items-center justify-end flex-shrink-0 relative">

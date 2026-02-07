@@ -1,64 +1,85 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import ChatSidebar from '@/components/chat/sidebar/ChatSidebar';
 import ChatHeader from '@/components/chat/header/ChatHeader';
 import ChatMessages from '@/components/chat/message/ChatMessages';
 import ChatInput from './message/ChatInput';
 import SessionNotFound from './SessionNotFound';
+import ChatMessagesSkeleton from './skeleton/ChatMessagesSkeleton';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  hydrateUserAndSessions, setCurrentSession, setResponsiveState, fetchMessagesSuccess 
+  fetchInitialDataRequest, setCurrentSession, fetchMessagesSuccess,
+  setLoadingCurrentSession, setCurrentSessionError
 } from '@/store/slices/chatSlice';
-import { breakpoints } from '@/config';
-import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { useChat } from '@ai-sdk/react';
+import { fetchSession, fetchMessages } from '@/lib/api/chat';
 
 interface ChatProps {
-  readonly user: User | null;
-  readonly sessionsData: SessionsResponse | null;
-  readonly messagesData?: MessagesResponse | null;
-  readonly currentSession?: Session | null;
+  readonly sessionId?: string;
 }
 
 export default function Chat({ 
-  user, 
-  sessionsData, 
-  messagesData, 
-  currentSession
+  sessionId
 }: ChatProps): React.ReactElement {
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  const reduxCurrentSession = useAppSelector((state) => state.chat.currentSession);
-  const { isTablet, isMobile } = useAppSelector((state) => state.chat);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
-  const [isHydrated, setIsHydrated] = useState<boolean>(false);
+  const { 
+    currentSession: reduxCurrentSession, 
+    sessions: reduxSessions,
+    user: reduxUser,
+    loading,
+    error
+  } = useAppSelector((state) => state.chat);
   const prevSessionIdRef = useRef<string | null>(null);
+  const hasFetchedSessionRef = useRef<string | null>(null);
+  const hasFetchedInitialDataRef = useRef<boolean>(false);
   
   const isOnSessionPage = pathname?.startsWith('/chat/') && pathname !== '/chat';
-  // Session is not found only if we're on a session page AND have neither props session nor Redux session
-  const sessionNotFound = isOnSessionPage && !currentSession && !reduxCurrentSession;
+  const isLoadingSession = loading.currentSession;
+  const sessionError = error.currentSession;
 
   const { chat } = useSharedChatContext();
-  const { setMessages } = useChat({ chat });
+  const { messages, setMessages } = useChat({ chat });
 
-  useEffect(() => {
-    if (user || sessionsData) {
-      dispatch(hydrateUserAndSessions({ user, sessionsData }));
+  const fetchSessionAndMessages = useCallback(async (targetSessionId: string) => {
+    if (hasFetchedSessionRef.current === targetSessionId) {
+      return;
     }
-  }, [dispatch, user, sessionsData]);
+    hasFetchedSessionRef.current = targetSessionId;
+    
+    // Clear messages immediately to show skeleton
+    setMessages([]);
+    dispatch(setLoadingCurrentSession(true));
+    dispatch(setCurrentSessionError(null));
 
-  useEffect(() => {
-    if (currentSession) {
-      dispatch(setCurrentSession(currentSession));
-      if (messagesData?.results) {
-        // Use AI SDK to manage messages instead of Redux
-        // Message type extends UIMessage, so this is safe
+    try {
+      const cachedSession = reduxSessions.find(s => s.id === targetSessionId);
+      
+      if (cachedSession) {
+        dispatch(setCurrentSession(cachedSession));
+      } else {
+        const sessionData = await fetchSession(targetSessionId);
+        if (!sessionData) {
+          dispatch(setCurrentSessionError('not_found'));
+          dispatch(setLoadingCurrentSession(false));
+          return;
+        }
+        dispatch(setCurrentSession(sessionData));
+      }
+
+      const messagesData = await fetchMessages(targetSessionId, 1, 50);
+      
+      if (!messagesData) {
+        dispatch(setCurrentSessionError('messages_error'));
+        dispatch(setLoadingCurrentSession(false));
+        return;
+      }
+
+      if (messagesData.results && messagesData.results.length > 0) {
         setMessages([...messagesData.results] as any);
-        // Initialize pagination state from server response
         dispatch(fetchMessagesSuccess({
           page: messagesData.page,
           pageSize: messagesData.page_size,
@@ -67,40 +88,37 @@ export default function Chat({
           hasNext: messagesData.has_next,
           hasPrevious: messagesData.has_previous,
         }));
+      } else {
+        setMessages([]);
       }
+      
+      dispatch(setLoadingCurrentSession(false));
+    } catch {
+      dispatch(setCurrentSessionError('server_error'));
+      dispatch(setLoadingCurrentSession(false));
+    }
+  }, [dispatch, reduxSessions, setMessages]);
+
+  useEffect(() => {
+    if (hasFetchedInitialDataRef.current || reduxUser || reduxSessions.length > 0) {
+      return;
+    }
+    hasFetchedInitialDataRef.current = true;
+    dispatch(fetchInitialDataRequest());
+  }, [dispatch, reduxUser, reduxSessions.length]);
+
+  useEffect(() => {
+    if (sessionId) {
+      fetchSessionAndMessages(sessionId);
     } else {
-      // Clear messages in AI SDK
       setMessages([]);
       dispatch(setCurrentSession(null));
+      dispatch(setLoadingCurrentSession(false));
+      hasFetchedSessionRef.current = null;
     }
-  }, [dispatch, currentSession, messagesData, setMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
-
-  useEffect(() => {
-    const handleResize = (): void => {
-      const width = globalThis.window?.innerWidth ?? 0;
-      const tablet = width < breakpoints.tablet && width >= breakpoints.mobile;
-      const mobile = width < breakpoints.mobile;
-      dispatch(setResponsiveState({ isTablet: tablet, isMobile: mobile }));
-    };
-    handleResize();
-    // Set initial sidebar state based on screen size after hydration
-    const shouldCollapse = globalThis.window !== undefined && globalThis.window.innerWidth < breakpoints.tablet;
-    setSidebarCollapsed(shouldCollapse);
-    setIsHydrated(true);
-    globalThis.window.addEventListener('resize', handleResize);
-    return () => globalThis.window.removeEventListener('resize', handleResize);
-  }, [dispatch]);
-
-  useEffect(() => {
-    // On mobile/tablet: keep sidebar collapsed
-    // On desktop: expand sidebar
-    if (isTablet || isMobile) {
-      setSidebarCollapsed(true);
-    } else {
-      setSidebarCollapsed(false);
-    }
-  }, [isTablet, isMobile]);
 
   useEffect(() => {
     if (prevSessionIdRef.current && !reduxCurrentSession && pathname?.startsWith('/chat/')) {
@@ -109,16 +127,49 @@ export default function Chat({
     prevSessionIdRef.current = reduxCurrentSession?.id || null;
   }, [reduxCurrentSession, pathname, router]);
 
+  const getErrorMessage = (errorType: string | null): { title: string; description: string } => {
+    switch (errorType) {
+      case 'not_found':
+        return {
+          title: "This conversation doesn't exist",
+          description: "The chat you're looking for may have been deleted or never existed."
+        };
+      case 'messages_error':
+        return {
+          title: "Unable to load messages",
+          description: "We couldn't retrieve the messages for this conversation. Please try again."
+        };
+      case 'server_error':
+      default:
+        return {
+          title: "Something went wrong",
+          description: "We encountered an error while loading this conversation. Please try again."
+        };
+    }
+  };
+
+  const isInitialLoading = loading.sessions && reduxSessions.length === 0;
+  const isSessionPageWithoutSession = isOnSessionPage && !reduxCurrentSession && !sessionError;
+  const isWaitingForMessages = isOnSessionPage && reduxCurrentSession && messages.length === 0 && !sessionError;
+  
   const renderChatContent = () => {
-    if (sessionNotFound) {
-      return <SessionNotFound />;
+    // Show skeleton while loading initial data, session/messages, on session page without session, or waiting for messages
+    if (isInitialLoading || isLoadingSession || isSessionPageWithoutSession || isWaitingForMessages) {
+      return <ChatMessagesSkeleton />;
+    }
+
+    // Show error state if session fetch failed
+    if (sessionError && isOnSessionPage) {
+      const { title, description } = getErrorMessage(sessionError);
+      return <SessionNotFound title={title} description={description} />;
     }
     
-    // Show ChatMessages if we have a session from props OR from Redux (new chat case)
-    if (currentSession || reduxCurrentSession) {
+    // Show ChatMessages if we have a session from Redux
+    if (reduxCurrentSession) {
       return <ChatMessages />;
     }
     
+    // Show new chat UI (only when not on a session page)
     return (
       <div className="flex-1 flex flex-col min-h-0 relative overscroll-none">
         <ChatInput newChat={true} />
@@ -127,25 +178,12 @@ export default function Chat({
   };
 
   return (
-    <div className="h-[100dvh] flex overflow-hidden w-full" style={{ fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif' }}>
-      <ChatSidebar
-        collapsed={sidebarCollapsed}
-        onCollapsedChange={setSidebarCollapsed}
-        isHydrated={isHydrated}
-      />
-      <div className="flex-1 flex flex-col bg-[image:var(--chat-background-alt)] min-h-0 relative overflow-hidden">
-        <ChatHeader
-          onMenuClick={() => setSidebarCollapsed(false)}
-        />
-        {renderChatContent()}
-      </div>
-    </div>
+    <>
+      <ChatHeader />
+      {renderChatContent()}
+    </>
   );
 }
 
-
-// Immediate concerns -
-// a. When changing session it should optimistically change -> move all fetch operations on client side and place a skeleteon loader to make up for smoothness
-// b. When clicking on new chat it should not refetch the sidebar sessions -> although its a new route loading, but only new session should be fetched and that too on client side so it should be very quick
-
-// In Future - Please decouple chat name from agent loop and instead expose a another api route for chat name and then send a parallel request to update it and get it.
+// When cookie not presrnt in browser it is unable to send message - fix it, or when cookie present first time but user object not yet created in db
+// Convet the chat stream protocol from client to direct backend to server side call

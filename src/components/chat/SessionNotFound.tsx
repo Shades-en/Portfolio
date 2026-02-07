@@ -3,7 +3,15 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 
-const SessionNotFound: React.FC = () => {
+interface SessionNotFoundProps {
+  readonly title?: string;
+  readonly description?: string;
+}
+
+const SessionNotFound: React.FC<SessionNotFoundProps> = ({
+  title = "This conversation doesn't exist",
+  description = "The chat you're looking for may have been deleted or never existed."
+}) => {
   const router = useRouter();
 
   const handleStartNewChat = (): void => {
@@ -15,10 +23,10 @@ const SessionNotFound: React.FC = () => {
       <div className="text-center max-w-lg space-y-6">
         <div className="space-y-3">
           <h2 className="text-xl font-medium text-slate-300">
-            This conversation doesn't exist
+            {title}
           </h2>
           <p className="text-sm text-slate-500">
-            The chat you're looking for may have been deleted or never existed.
+            {description}
           </p>
         </div>
 

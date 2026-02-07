@@ -3,7 +3,27 @@
  * These functions call Next.js API routes (in src/app/api/chat/*) which proxy requests to the backend.
  */
 
-import type { Session, SessionsResponse, MessagesResponse } from '@/types/chat';
+import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
+
+export async function fetchUser(): Promise<User | null> {
+  try {
+    const response = await fetch('/api/chat/user', {
+      headers: {
+        'accept': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return null;
+  }
+}
 
 export async function fetchSession(sessionId: string): Promise<Session | null> {
   try {

@@ -25,3 +25,5 @@ dist-ssr
 .next/
 
 yarn.lock
+
+.windsurf/plans

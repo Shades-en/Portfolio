@@ -4,20 +4,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Settings, Menu } from 'lucide-react';
 import ChatOptionsMenu from './ChatOptionsMenu';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { renameSessionRequest } from '@/store/slices/chatSlice';
-import { useSharedChatContext } from '@/app/contexts/chat-context';
-import { useChat } from '@ai-sdk/react';
+import { renameSessionRequest, setSidebarCollapsed } from '@/store/slices/chatSlice';
 
-interface ChatHeaderProps {
-  readonly onMenuClick?: () => void;
-}
-
-const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick }) => {
+const ChatHeader: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isTablet, isMobile, currentSession } = useAppSelector((state) => state.chat);
-  const { chat } = useSharedChatContext();
-  const { messages } = useChat({ chat });
-  const newChat = messages.length === 0;
+
+  const handleMenuClick = (): void => {
+    dispatch(setSidebarCollapsed(false));
+  };
+  const hasSession = !!currentSession;
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(currentSession?.name || 'New Chat');
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -133,12 +129,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ onMenuClick }) => {
                 className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all duration-200"
                 title="Menu"
                 aria-label="Open menu"
-                onClick={onMenuClick}
+                onClick={handleMenuClick}
               >
                 <Menu size={20} />
               </button>
             )}
-            {!newChat && (
+            {hasSession && (
               <div className="flex items-center relative z-10 flex-shrink-0">
                 {renderTitle()}
                 {(!isEditing) && renderDropdown()}
