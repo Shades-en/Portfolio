@@ -16,6 +16,22 @@ export function generateObjectId(): string {
   return timestamp + randomBytes;
 }
 
+/**
+ * Gets the user_cookie from browser cookies, or creates and sets a new one if it doesn't exist.
+ */
+export function getUserCookie(): string {
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'user_cookie') {
+      return value;
+    }
+  }
+  const newCookie = `user_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+  document.cookie = `user_cookie=${newCookie}; max-age=${60 * 60 * 24 * 365}; path=/; samesite=lax`;
+  return newCookie;
+}
+
 export function formatRelativeTime(utcTimestamp: string): string {
   const now = Date.now();
   const timestampWithZ = utcTimestamp.endsWith('Z') || utcTimestamp.includes('+') 

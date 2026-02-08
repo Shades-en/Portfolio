@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import 'server-only';
 import { serverConfig } from '@/config';
-import type { User, Session, SessionsResponse, MessagesResponse } from '@/types/chat';
+import type { User, Session, SessionsResponse, MessagesResponse, AllSessionsResponse } from '@/types/chat';
 
 export const callBackendUser = cache(async (cookieId: string): Promise<User | null> => {
   console.log('[backend-api] callBackendUser invoked');
@@ -57,6 +57,31 @@ export const callBackendSessions = cache(async (
     return await response.json();
   } catch (error) {
     console.error('Error calling backend sessions API:', error);
+    return null;
+  }
+});
+
+export const callBackendAllSessions = cache(async (cookieId: string): Promise<AllSessionsResponse | null> => {
+  console.log('[backend-api] callBackendAllSessions invoked');
+  try {
+    const response = await fetch(
+      `${serverConfig.backendApiUrl}/sessions/all?cookie_id=${encodeURIComponent(cookieId)}`,
+      {
+        headers: {
+          'accept': 'application/json',
+        },
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Failed to fetch all sessions from backend:', response.status);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error calling backend all sessions API:', error);
     return null;
   }
 });

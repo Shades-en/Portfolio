@@ -26,22 +26,14 @@ export default function ChatLayout({ children }: ChatLayoutProps) {
       const tablet = width < breakpoints.tablet && width >= breakpoints.mobile;
       const mobile = width < breakpoints.mobile;
       dispatch(setResponsiveState({ isTablet: tablet, isMobile: mobile }));
+      // Also update sidebar collapsed state on resize
+      dispatch(setSidebarCollapsed(width < breakpoints.tablet));
     };
     handleResize();
-    const shouldCollapse = globalThis.window !== undefined && globalThis.window.innerWidth < breakpoints.tablet;
-    dispatch(setSidebarCollapsed(shouldCollapse));
     setIsHydrated(true);
     globalThis.window.addEventListener('resize', handleResize);
     return () => globalThis.window.removeEventListener('resize', handleResize);
   }, [dispatch]);
-
-  useEffect(() => {
-    if (isTablet || isMobile) {
-      dispatch(setSidebarCollapsed(true));
-    } else {
-      dispatch(setSidebarCollapsed(false));
-    }
-  }, [isTablet, isMobile, dispatch]);
 
   return (
     <ChatProvider>

@@ -9,6 +9,21 @@ export default {
 		"./src/**/*.{ts,tsx}",
 		"./node_modules/streamdown/dist/*.js",
 	],
+	safelist: [
+		// Sidebar width classes
+		'max-[949px]:w-16',
+		'max-[639px]:w-0',
+		// Sidebar positioning classes
+		'max-[949px]:fixed',
+		'max-[949px]:inset-y-0',
+		'max-[949px]:left-0',
+		'max-[949px]:z-[60]',
+		// Sidebar content visibility classes
+		'max-[949px]:opacity-0',
+		'max-[949px]:hidden',
+		'max-[949px]:flex',
+		'max-[639px]:hidden',
+	],
 	prefix: "",
 	theme: {
 		container: {

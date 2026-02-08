@@ -27,6 +27,11 @@ export interface SessionsResponse {
   readonly results: readonly Session[];
 }
 
+export interface AllSessionsResponse {
+  readonly count: number;
+  readonly results: readonly Session[];
+}
+
 export interface Message extends UIMessage {
   readonly turn_number: number;
   readonly feedback: 'liked' | 'disliked' | null;

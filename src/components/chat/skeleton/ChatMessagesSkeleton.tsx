@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import ChatInput from '../message/ChatInput';
+import ChatInputSkeleton from './ChatInputSkeleton';
 
 const ChatMessagesSkeleton: React.FC = () => {
   return (
@@ -63,8 +63,9 @@ const ChatMessagesSkeleton: React.FC = () => {
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-2 z-50">
+        <div className="h-8 bg-gradient-to-b from-transparent to-[hsl(222,34%,10%)] pointer-events-none" />
         <div className="bg-[hsl(222,34%,10%)] pb-4">
-          <ChatInput newChat={false} />
+          <ChatInputSkeleton />
         </div>
       </div>
     </div>

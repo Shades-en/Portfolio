@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { User, Session, SessionsResponse } from '@/types/chat';
+import type { User, Session, SessionsResponse, AllSessionsResponse } from '@/types/chat';
 
 interface ChatState {
   readonly user: User | null;
@@ -115,6 +115,21 @@ const chatSlice = createSlice({
       state.error.sessions = action.payload;
     },
 
+    fetchAllSessionsRequest: (state) => {
+      state.loading.sessions = true;
+      state.error.sessions = null;
+    },
+    fetchAllSessionsSuccess: (state, action: PayloadAction<AllSessionsResponse>) => {
+      state.loading.sessions = false;
+      state.sessions = action.payload.results as Session[];
+      state.sessionsCount = action.payload.count;
+      state.error.sessions = null;
+    },
+    fetchAllSessionsFailure: (state, action: PayloadAction<string>) => {
+      state.loading.sessions = false;
+      state.error.sessions = action.payload;
+    },
+
     fetchMessagesRequest: (state, action: PayloadAction<{ readonly sessionId: string; readonly page: number; readonly pageSize: number }>) => {
       state.loading.messages = true;
       state.error.messages = null;
@@ -140,6 +155,22 @@ const chatSlice = createSlice({
       state.pagination.messages.totalCount = 0;
       state.pagination.messages.hasNext = false;
       state.pagination.messages.hasPrevious = false;
+    },
+
+    fetchCurrentSessionRequest: (state, action: PayloadAction<string>) => {
+      state.loading.currentSession = true;
+      state.error.currentSession = null;
+    },
+
+    fetchCurrentSessionSuccess: (state, action: PayloadAction<Session>) => {
+      state.currentSession = action.payload;
+      state.loading.currentSession = false;
+      state.error.currentSession = null;
+    },
+
+    fetchCurrentSessionFailure: (state, action: PayloadAction<string>) => {
+      state.error.currentSession = action.payload;
+      state.loading.currentSession = false;
     },
 
     setLoadingCurrentSession: (state, action: PayloadAction<boolean>) => {
@@ -252,7 +283,7 @@ const chatSlice = createSlice({
       state.loading.sessions = true;
     },
 
-    fetchInitialDataSuccess: (state, action: PayloadAction<{ readonly user: User | null; readonly sessionsData: SessionsResponse | null }>) => {
+    fetchInitialDataSuccess: (state, action: PayloadAction<{ readonly user: User | null; readonly sessionsData: AllSessionsResponse | null }>) => {
       state.loading.user = false;
       state.loading.sessions = false;
       
@@ -263,12 +294,6 @@ const chatSlice = createSlice({
       if (action.payload.sessionsData) {
         state.sessions = action.payload.sessionsData.results as Session[];
         state.sessionsCount = action.payload.sessionsData.count;
-        state.pagination.sessions.page = action.payload.sessionsData.page;
-        state.pagination.sessions.pageSize = action.payload.sessionsData.page_size;
-        state.pagination.sessions.totalPages = action.payload.sessionsData.total_pages;
-        state.pagination.sessions.totalCount = action.payload.sessionsData.total_count;
-        state.pagination.sessions.hasNext = action.payload.sessionsData.has_next;
-        state.pagination.sessions.hasPrevious = action.payload.sessionsData.has_previous;
       }
     },
 
@@ -296,10 +321,16 @@ export const {
   fetchSessionsRequest,
   fetchSessionsSuccess,
   fetchSessionsFailure,
+  fetchAllSessionsRequest,
+  fetchAllSessionsSuccess,
+  fetchAllSessionsFailure,
   fetchMessagesRequest,
   fetchMessagesSuccess,
   fetchMessagesFailure,
   setCurrentSession,
+  fetchCurrentSessionRequest,
+  fetchCurrentSessionSuccess,
+  fetchCurrentSessionFailure,
   setLoadingCurrentSession,
   setCurrentSessionError,
   updateSessionName,

@@ -16,6 +16,7 @@ const NewChatButton: React.FC<NewChatButtonProps> = ({ className = '', onCollaps
   const logoSize = 16;
 
   const handleNewChat = (): void => {
+    // Clear session immediately for instant UI update
     dispatch(setCurrentSession(null));
     router.push('/chat');
     if ((isMobile || isTablet) && onCollapsedChange) {

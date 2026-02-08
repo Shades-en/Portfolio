@@ -4,6 +4,9 @@ import {
   fetchSessionsRequest,
   fetchSessionsSuccess,
   fetchSessionsFailure,
+  fetchAllSessionsRequest,
+  fetchAllSessionsSuccess,
+  fetchAllSessionsFailure,
   fetchMessagesRequest,
   fetchMessagesSuccess,
   fetchMessagesFailure,
@@ -16,9 +19,12 @@ import {
   fetchInitialDataRequest,
   fetchInitialDataSuccess,
   fetchInitialDataFailure,
+  fetchCurrentSessionRequest,
+  fetchCurrentSessionSuccess,
+  fetchCurrentSessionFailure,
 } from '@/store/slices/chatSlice';
-import { fetchUser, fetchSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions } from '@/lib/api/chat';
-import type { User, SessionsResponse, MessagesResponse } from '@/types/chat';
+import { fetchUser, fetchSessions, fetchAllSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions, fetchSession } from '@/lib/api/chat';
+import type { User, SessionsResponse, MessagesResponse, AllSessionsResponse } from '@/types/chat';
 
 function* fetchSessionsSaga(
   action: PayloadAction<{ readonly page: number; readonly pageSize: number }>
@@ -35,6 +41,21 @@ function* fetchSessionsSaga(
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred';
     yield put(fetchSessionsFailure(message));
+  }
+}
+
+function* fetchAllSessionsSaga(): Generator {
+  try {
+    const sessionsData = (yield call(fetchAllSessions)) as AllSessionsResponse | null;
+    
+    if (sessionsData) {
+      yield put(fetchAllSessionsSuccess(sessionsData));
+    } else {
+      yield put(fetchAllSessionsFailure('Failed to fetch all sessions'));
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error occurred';
+    yield put(fetchAllSessionsFailure(message));
   }
 }
 
@@ -138,8 +159,8 @@ function* fetchInitialDataSaga(): Generator {
   try {
     const [userData, sessionsData] = (yield all([
       call(fetchUser),
-      call(fetchSessions, 1, 50),
-    ])) as [User | null, SessionsResponse | null];
+      call(fetchAllSessions),
+    ])) as [User | null, AllSessionsResponse | null];
 
     yield put(fetchInitialDataSuccess({ user: userData, sessionsData }));
   } catch (error) {
@@ -152,13 +173,40 @@ function* watchFetchInitialData(): Generator {
   yield takeLatest(fetchInitialDataRequest.type, fetchInitialDataSaga);
 }
 
+function* fetchCurrentSessionSaga(action: PayloadAction<string>): Generator {
+  try {
+    const sessionId = action.payload;
+    const sessionData = (yield call(fetchSession, sessionId)) as any;
+    
+    if (!sessionData) {
+      yield put(fetchCurrentSessionFailure('not_found'));
+      return;
+    }
+    
+    yield put(fetchCurrentSessionSuccess(sessionData));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'server_error';
+    yield put(fetchCurrentSessionFailure(message));
+  }
+}
+
+function* watchFetchCurrentSession(): Generator {
+  yield takeLatest(fetchCurrentSessionRequest.type, fetchCurrentSessionSaga);
+}
+
+function* watchFetchAllSessions(): Generator {
+  yield takeLatest(fetchAllSessionsRequest.type, fetchAllSessionsSaga);
+}
+
 export default function* chatSaga(): Generator {
   yield all([
     watchFetchSessions(),
+    watchFetchAllSessions(),
     watchFetchMessages(),
     watchRenameSession(),
     watchToggleStarSession(),
     watchDeleteAllSessions(),
     watchFetchInitialData(),
+    watchFetchCurrentSession(),
   ]);
 }

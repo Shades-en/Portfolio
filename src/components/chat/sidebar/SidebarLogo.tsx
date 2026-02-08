@@ -6,13 +6,14 @@ const montserrat = Montserrat({ subsets: ['latin'], weight: '500' });
 
 interface SidebarLogoProps {
   readonly className?: string;
+  readonly 'data-sidebar-logo'?: boolean;
 }
 
-const SidebarLogo: React.FC<SidebarLogoProps> = ({ className = '' }) => {
+const SidebarLogo: React.FC<SidebarLogoProps> = ({ className = '', ...rest }) => {
   const shadesLogoSize = 24;
 
   return (
-    <Link href="/" className={`flex items-center gap-2 ${className}`}>
+    <Link href="/" className={`flex items-center gap-2 ${className}`} {...rest}>
       <div className="p-0.5 pr-0 flex-shrink-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 

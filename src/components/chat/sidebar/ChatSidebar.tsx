@@ -11,7 +11,6 @@ import SidebarToggle from './SidebarToggle';
 import NewChatButton from './NewChatButton';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { deleteAllSessionsRequest } from '@/store/slices/chatSlice';
-import { breakpoints } from '@/config';
 
 interface ChatSidebarProps {
   collapsed: boolean;
@@ -47,11 +46,20 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
     dispatch(deleteAllSessionsRequest());
   };
 
-  const widthClass: string = collapsed ? (isMobile ? 'w-0' : 'w-16') : 'w-64';
+  // After hydration: use JS-controlled width and positioning
+  // Before hydration: use CSS media queries for correct initial state
+  // Desktop (>=950px): w-64 (open), Tablet (640-949px): w-16 (collapsed), Mobile (<640px): w-0 (hidden)
+  const widthClass: string = isHydrated 
+    ? (collapsed ? (isMobile ? 'w-0' : 'w-16') : 'w-64')
+    : 'w-64 max-[949px]:w-16 max-[639px]:w-0';
   
-  // Before hydration: use CSS media query to hide on mobile/tablet (< tablet breakpoint)
-  // After hydration: always show (controlled by collapsed state and widthClass)
-  const preHydrationHideClass = isHydrated ? '' : `max-[${breakpoints.tablet - 1}px]:hidden`;
+  // Positioning: fixed on mobile/tablet, relative on desktop
+  const positionClass: string = isHydrated
+    ? ((isTablet || isMobile) ? 'fixed inset-y-0 left-0 z-[60]' : 'relative')
+    : 'relative max-[949px]:fixed max-[949px]:inset-y-0 max-[949px]:left-0 max-[949px]:z-[60]';
+  
+  // Only enable transitions after hydration to prevent animation flash
+  const transitionClass: string = isHydrated ? 'transition-all duration-200' : '';
 
   return (
     <>
@@ -63,11 +71,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
         />
       )}
       <div
-        className={`${( isTablet || isMobile ) ? 'fixed inset-y-0 left-0 z-[60]' : 'relative'} overflow-hidden border-r flex flex-col bg-[var(--chat-foreground)] h-full transition-all duration-200 ${widthClass} ${preHydrationHideClass}`}
+        data-sidebar
+        data-hydrated={isHydrated ? "true" : "false"}
+        className={`${positionClass} overflow-hidden border-r flex flex-col bg-[var(--chat-foreground)] h-full ${transitionClass} ${widthClass}`}
       >
         <div className="px-4 pt-4 pb-0 mt-2">
           <div className="flex items-center justify-between gap-3 relative top-0 h-6">
-            <SidebarLogo className={`absolute left-0 ${opacityAnimationClasses}`} />
+            {/* Logo: hidden on tablet/mobile when collapsed (before hydration use CSS, after use JS) */}
+            <SidebarLogo 
+              className={`absolute left-0 ${isHydrated ? opacityAnimationClasses : 'opacity-100 max-[949px]:opacity-0'}`} 
+            />
             <SidebarToggle 
               collapsed={collapsed} 
               onToggle={onCollapsedChange} 
@@ -82,7 +95,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
               <div className="p-4 py-1 border-b border-slate-800 h-24">
                 <div className="flex flex-col gap-2 h-full">
                   <NewChatButton 
-                    className={opacityAnimationClasses} 
+                    className={isHydrated ? opacityAnimationClasses : 'opacity-100 max-[949px]:opacity-0'} 
                     onCollapsedChange={onCollapsedChange} 
                   />
                   <ChatSearchDialog
@@ -91,7 +104,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
                         <div className='pl-2'>
                           <Search size={logoSize} className="text-slate-400 group-hover:text-primary transition-colors" />
                         </div>
-                        <span className={`text-xs font-medium whitespace-nowrap ${opacityAnimationClasses}`}>Search Chats</span>
+                        <span className={`text-xs font-medium whitespace-nowrap ${isHydrated ? opacityAnimationClasses : 'opacity-100 max-[949px]:opacity-0'}`}>Search Chats</span>
                       </button>
                     }
                     open={isSearchOpen}
@@ -145,11 +158,25 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
         </div>
 
         <div className="p-4 border-t space-y-2" style={{ borderColor: 'hsl(197, 92%, 56%)/10' }}>
-          {collapsed ? (
-            <div className="mt-auto w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
-              <Image src="/white-logo/android-chrome-512x512.png" alt="Shades logo" width={shadesLogoSize} height={shadesLogoSize} className="w-full h-full object-cover" />          
-            </div>
-          ) : (
+          {/* Collapsed state footer - logo (shown when collapsed, hidden when open) */}
+          {/* Before hydration: use CSS responsive classes. After hydration: JS controls visibility */}
+          <div 
+            className={`mt-auto w-8 h-8 rounded-lg items-center justify-center overflow-hidden ${
+              isHydrated 
+                ? (collapsed ? 'flex' : 'hidden') 
+                : 'hidden max-[949px]:flex max-[639px]:hidden'
+            }`}
+          >
+            <Image src="/white-logo/android-chrome-512x512.png" alt="Shades logo" width={shadesLogoSize} height={shadesLogoSize} className="w-full h-full object-cover" />          
+          </div>
+          {/* Open state footer - clear history (shown when open, hidden when collapsed) */}
+          <div 
+            className={
+              isHydrated 
+                ? (collapsed ? 'hidden' : 'block') 
+                : 'block max-[949px]:hidden'
+            }
+          >
             <ConfirmDialog
               trigger={
                 <button className={`flex items-center gap-3 px-0 py-1.5 text-slate-400 hover:text-red-500 transition-colors duration-200 group ${opacityAnimationClasses}`}>
@@ -162,7 +189,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
               confirmLabel="Clear"
               onConfirm={handleClearHistory}
             />
-          )}
+          </div>
         </div>
       </div>
     </>

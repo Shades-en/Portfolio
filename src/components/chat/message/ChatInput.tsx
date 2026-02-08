@@ -9,7 +9,7 @@ import { useChat } from '@ai-sdk/react';
 import { bumpSessionToTop, addNewSession } from '@/store/slices/chatSlice';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { chatConfig } from '@/config';
-import { generateObjectId } from '@/lib/utils';
+import { generateObjectId, getUserCookie } from '@/lib/utils';
 import '../chat.css';
 
 interface ChatInputProps {
@@ -60,11 +60,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
       dispatch(bumpSessionToTop({ sessionId }));
     }
 
+    const userCookie = getUserCookie();
     await sendMessage(
       { text: trimmedMessage },
       {
         body: {
-          user_cookie: user?.cookie_id,
+          user_cookie: userCookie,
           session_id: sessionId,
           user_id: user?.id,
           new_chat: newChat,
@@ -107,13 +108,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
   };
 
 
-  const translateClass = isMobile ? '-translate-y-[55%]' : '-translate-y-[65%]';
-  const newChatClasses = `w-9/12 lg:5/6 mx-auto absolute inset-x-0 top-1/2 ${translateClass} transform`;
+  // Use CSS responsive classes instead of JS-based isMobile to prevent hydration shift
+  // sm: breakpoint (640px) matches the mobile breakpoint
+  const newChatClasses = 'w-9/12 lg:5/6 mx-auto absolute inset-x-0 top-1/2 -translate-y-[55%] sm:-translate-y-[65%] transform';
   const existingChatClasses = 'w-11/12 mx-auto';
   const containerClasses = `space-y-4 ${showNewChatUI ? newChatClasses : existingChatClasses}`;
 
   return (
-    <div className={containerClasses}>
+    <div data-chat-input className={containerClasses}>
       {showNewChatUI && (
         <div className='flex items-center gap-2 w-full justify-center my-10 sm:flex-row flex-col'>
           <h1 className="xl:text-4xl sm:text-3xl text-3xl font-light whitespace-nowrap"> Let's talk about</h1>
