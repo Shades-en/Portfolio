@@ -50,6 +50,7 @@ const ChatSearchDialog: React.FC<ChatSearchDialogProps> = ({
                   isActive={false}
                   subtitle={formatRelativeTime(session.updated_at)}
                   variant="search"
+                  onNavigate={() => onOpenChange(false)}
                 />
               ))
             ) : (
