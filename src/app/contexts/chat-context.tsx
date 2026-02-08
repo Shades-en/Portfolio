@@ -3,11 +3,9 @@
 import React, { createContext, useContext, ReactNode, useState, useMemo } from 'react';
 import { Chat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { serverConfig } from '@/config';
 import { Message } from '@/types/chat';
 
 interface ChatContextValue {
-  // replace with your custom message type
   chat: Chat<Message>;
 }
 
@@ -16,7 +14,7 @@ const ChatContext = createContext<ChatContextValue | undefined>(undefined);
 function createChat() {
   return new Chat<Message>({
     transport: new DefaultChatTransport({
-      api: `${serverConfig.backendApiUrl}/chat/stream`,
+      api: '/api/chat/stream',
       prepareSendMessagesRequest({
         messages,
         id,
