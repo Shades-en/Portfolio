@@ -1,11 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { toggleStarSession } from '@/lib/backend-api';
+import { cookies } from 'next/headers';
+import { toggleStarSession, callBackendUser } from '@/lib/backend-api';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ): Promise<NextResponse> {
   try {
+    const cookieStore = await cookies();
+    const userCookie = cookieStore.get('user_cookie');
+
+    if (!userCookie?.value) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const user = await callBackendUser(userCookie.value);
+    if (!user?.id) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 401 }
+      );
+    }
+
     const { sessionId } = await params;
     const body = await request.json();
     const { starred } = body;
@@ -17,7 +36,7 @@ export async function PATCH(
       );
     }
 
-    const result = await toggleStarSession(sessionId, starred);
+    const result = await toggleStarSession(sessionId, user.id, starred);
 
     if (!result) {
       return NextResponse.json(

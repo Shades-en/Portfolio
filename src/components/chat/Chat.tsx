@@ -175,5 +175,3 @@ export default function Chat({
     </>
   );
 }
-
-// Move the chat stream protocol from client to direct backend to server side call

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { callBackendMessages } from '@/lib/backend-api';
+import { callBackendMessages, callBackendUser } from '@/lib/backend-api';
 
 export async function GET(
   request: NextRequest,
@@ -17,12 +17,20 @@ export async function GET(
       );
     }
 
+    const user = await callBackendUser(userCookie.value);
+    if (!user?.id) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 401 }
+      );
+    }
+
     const { sessionId } = await params;
     const searchParams = request.nextUrl.searchParams;
     const page = Number.parseInt(searchParams.get('page') || '1');
     const pageSize = Number.parseInt(searchParams.get('page_size') || '50');
 
-    const data = await callBackendMessages(sessionId, page, pageSize);
+    const data = await callBackendMessages(sessionId, user.id, page, pageSize);
     
     if (!data) {
       return NextResponse.json(
