@@ -34,7 +34,7 @@ export interface AllSessionsResponse {
 
 export interface Message extends UIMessage {
   readonly turn_number: number;
-  readonly feedback: 'liked' | 'disliked' | null;
+  readonly feedback: 'liked' | 'disliked' | 'neutral';
   readonly created_at: string;
 }
 

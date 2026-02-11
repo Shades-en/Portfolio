@@ -1,5 +1,6 @@
 import { call, put, takeLatest, all } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import { toast } from '@/hooks/use-toast';
 import {
   fetchSessionsRequest,
   fetchSessionsSuccess,
@@ -22,8 +23,11 @@ import {
   fetchCurrentSessionRequest,
   fetchCurrentSessionSuccess,
   fetchCurrentSessionFailure,
+  updateMessageFeedbackRequest,
+  updateMessageFeedbackSuccess,
+  updateMessageFeedbackFailure,
 } from '@/store/slices/chatSlice';
-import { fetchUser, fetchSessions, fetchAllSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions, fetchSession } from '@/lib/api/chat';
+import { fetchUser, fetchSessions, fetchAllSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions, fetchSession, updateMessageFeedback } from '@/lib/api/chat';
 import type { User, SessionsResponse, MessagesResponse, AllSessionsResponse } from '@/types/chat';
 
 function* fetchSessionsSaga(
@@ -198,6 +202,51 @@ function* watchFetchAllSessions(): Generator {
   yield takeLatest(fetchAllSessionsRequest.type, fetchAllSessionsSaga);
 }
 
+function* updateMessageFeedbackSaga(
+  action: PayloadAction<{
+    readonly messageId: string;
+    readonly feedback: 'liked' | 'disliked' | 'neutral';
+    readonly previousFeedback: 'liked' | 'disliked' | 'neutral';
+  }>
+): Generator {
+  try {
+    const { messageId, feedback, previousFeedback } = action.payload;
+    const success = (yield call(updateMessageFeedback, messageId, feedback)) as boolean;
+
+    if (success) {
+      yield put(updateMessageFeedbackSuccess({ messageId, feedback }));
+    } else {
+      yield put(updateMessageFeedbackFailure({
+        messageId,
+        previousFeedback,
+        error: 'Failed to update feedback',
+      }));
+      toast({
+        title: 'Failed to save feedback',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  } catch (error) {
+    const { messageId, previousFeedback } = action.payload;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    yield put(updateMessageFeedbackFailure({
+      messageId,
+      previousFeedback,
+      error: errorMessage,
+    }));
+    toast({
+      title: 'Failed to save feedback',
+      description: 'Please try again.',
+      variant: 'destructive',
+    });
+  }
+}
+
+function* watchUpdateMessageFeedback(): Generator {
+  yield takeLatest(updateMessageFeedbackRequest.type, updateMessageFeedbackSaga);
+}
+
 export default function* chatSaga(): Generator {
   yield all([
     watchFetchSessions(),
@@ -208,5 +257,6 @@ export default function* chatSaga(): Generator {
     watchDeleteAllSessions(),
     watchFetchInitialData(),
     watchFetchCurrentSession(),
+    watchUpdateMessageFeedback(),
   ]);
 }

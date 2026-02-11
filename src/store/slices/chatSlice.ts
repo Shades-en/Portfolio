@@ -313,6 +313,33 @@ const chatSlice = createSlice({
       state.sidebarCollapsed = action.payload;
     },
 
+    updateMessageFeedbackRequest: (
+      _state,
+      _action: PayloadAction<{
+        readonly messageId: string;
+        readonly feedback: 'liked' | 'disliked' | 'neutral';
+        readonly previousFeedback: 'liked' | 'disliked' | 'neutral';
+      }>
+    ) => {
+      // Saga handles the API call; optimistic update is done in the component
+    },
+    updateMessageFeedbackSuccess: (
+      _state,
+      _action: PayloadAction<{ readonly messageId: string; readonly feedback: 'liked' | 'disliked' | 'neutral' }>
+    ) => {
+      // Success - no state update needed as optimistic update already applied
+    },
+    updateMessageFeedbackFailure: (
+      _state,
+      _action: PayloadAction<{
+        readonly messageId: string;
+        readonly previousFeedback: 'liked' | 'disliked' | 'neutral';
+        readonly error: string;
+      }>
+    ) => {
+      // Failure - component will revert optimistic update via callback
+    },
+
     resetChat: () => initialState,
   },
 });
@@ -348,6 +375,9 @@ export const {
   fetchInitialDataFailure,
   setResponsiveState,
   setSidebarCollapsed,
+  updateMessageFeedbackRequest,
+  updateMessageFeedbackSuccess,
+  updateMessageFeedbackFailure,
   resetChat,
 } = chatSlice.actions;
 

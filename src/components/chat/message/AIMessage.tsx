@@ -4,6 +4,7 @@ import { Copy, ThumbsUp, ThumbsDown, Check, AlertCircle } from "lucide-react";
 import { Streamdown } from "streamdown";
 import type { Message } from '@/types/chat';
 import ToolMessage from './ToolMessage';
+import { useMessageFeedback } from '@/hooks/use-message-feedback';
 import '../chat.css';
 
 interface AIMessageProps {
@@ -12,11 +13,12 @@ interface AIMessageProps {
 
 const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
   const [copied, setCopied] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [disliked, setDisliked] = useState(false);
+  const { liked, disliked, handleLike, handleDislike } = useMessageFeedback({
+    messageId: message.id,
+    initialFeedback: message.feedback ?? 'neutral',
+  });
 
   const handleCopy = (): void => {
-    // Extract all text content from parts
     const textContent = message.parts
       ?.filter((part: any) => part.type === 'text')
       .map((part: any) => part.text)
@@ -24,16 +26,6 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
     navigator.clipboard.writeText(textContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleLike = (): void => {
-    setLiked(!liked);
-    if (disliked) setDisliked(false);
-  };
-
-  const handleDislike = (): void => {
-    setDisliked(!disliked);
-    if (liked) setLiked(false);
   };
 
   const isMessageReady = (message: Message): boolean => {

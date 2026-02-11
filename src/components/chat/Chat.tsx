@@ -175,3 +175,5 @@ export default function Chat({
     </>
   );
 }
+
+// When message is generating and i click stop the width occupation is messed up -> is there a way the stop can propagate to backend

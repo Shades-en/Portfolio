@@ -259,3 +259,36 @@ export async function deleteAllSessions(userId: string): Promise<{ sessions_dele
     return null;
   }
 }
+
+export async function updateMessageFeedback(
+  messageId: string,
+  userId: string,
+  feedback: 'liked' | 'disliked' | 'neutral'
+): Promise<{ message_id: string; feedback: 'liked' | 'disliked' | 'neutral' } | null> {
+  console.log('[backend-api] updateMessageFeedback invoked');
+  try {
+    const response = await fetch(
+      `${serverConfig.backendApiUrl}/messages/${messageId}/feedback`,
+      {
+        method: 'PATCH',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-User-Id': userId,
+        },
+        body: JSON.stringify({ feedback }),
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Failed to update message feedback:', response.status);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating message feedback:', error);
+    return null;
+  }
+}

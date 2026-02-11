@@ -27,3 +27,4 @@ dist-ssr
 yarn.lock
 
 .windsurf/plans
+tsconfig.tsbuildinfo

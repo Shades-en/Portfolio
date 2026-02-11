@@ -68,14 +68,14 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message }) => {
           </button>
         </CustomTooltip>
 
-        <CustomTooltip content="Edit message" side="bottom">
+        {/* <CustomTooltip content="Edit message" side="bottom">
           <button 
             onClick={handleEdit}
             className="p-1.5 rounded-lg sm:hover:bg-primary/10 text-muted-foreground sm:hover:text-primary transition-colors pointer-events-auto"
           >
             <Edit size={14} />
           </button>
-        </CustomTooltip>
+        </CustomTooltip> */}
       </div>
     </div>
   );

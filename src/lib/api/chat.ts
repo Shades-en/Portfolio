@@ -187,3 +187,23 @@ export async function deleteAllSessions(): Promise<boolean> {
     return false;
   }
 }
+
+export async function updateMessageFeedback(
+  messageId: string,
+  feedback: 'liked' | 'disliked' | 'neutral'
+): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/chat/messages/${messageId}/feedback`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feedback }),
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error updating message feedback:', error);
+    return false;
+  }
+}
