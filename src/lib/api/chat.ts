@@ -207,3 +207,74 @@ export async function updateMessageFeedback(
     return false;
   }
 }
+
+interface GenerateNameParams {
+  readonly query: string;
+  readonly turnsBetweenChatName?: number;
+  readonly maxChatNameLength?: number;
+  readonly maxChatNameWords?: number;
+}
+
+interface GenerateNameResponse {
+  readonly name: string;
+  readonly session_id: string | null;
+}
+
+export async function generateNewSessionName(
+  params: GenerateNameParams
+): Promise<GenerateNameResponse | null> {
+  try {
+    const response = await fetch('/api/chat/sessions/generate-name', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: params.query,
+        turns_between_chat_name: params.turnsBetweenChatName,
+        max_chat_name_length: params.maxChatNameLength,
+        max_chat_name_words: params.maxChatNameWords,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to generate new session name:', response.status);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error generating new session name:', error);
+    return null;
+  }
+}
+
+export async function generateSessionName(
+  sessionId: string,
+  params: GenerateNameParams
+): Promise<GenerateNameResponse | null> {
+  try {
+    const response = await fetch(`/api/chat/sessions/${sessionId}/generate-name`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: params.query,
+        turns_between_chat_name: params.turnsBetweenChatName,
+        max_chat_name_length: params.maxChatNameLength,
+        max_chat_name_words: params.maxChatNameWords,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to generate session name:', response.status);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error generating session name:', error);
+    return null;
+  }
+}

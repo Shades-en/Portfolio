@@ -9,23 +9,18 @@ import { useChat } from '@ai-sdk/react';
 import { useChatScroll } from '@/hooks/use-chat-scroll';
 import { useMessagePagination } from '@/hooks/use-message-pagination';
 import { toast } from '@/hooks/use-toast';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { updateSessionName } from '@/store/slices/chatSlice';
-import { fetchSession } from '@/lib/api/chat';
+import { useAppSelector } from '@/store/hooks';
 import type { Message } from '@/types/chat';
 
 interface ChatMessagesProps {
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = () => {
-  const dispatch = useAppDispatch();
   const { currentSession } = useAppSelector((state) => state.chat);
   const { chat } = useSharedChatContext();
   const { messages, status, error, setMessages } = useChat({ chat, experimental_throttle: 1 });
   const lastMessage = messages.at(-1);
   const hasShownErrorToast = useRef(false);
-  const hasFetchedSessionName = useRef(false);
-  const prevStatus = useRef(status);
   
   const hasAITextContent = React.useMemo(() => {
     if (!lastMessage || lastMessage.role !== 'assistant') return false;
@@ -52,24 +47,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = () => {
       hasShownErrorToast.current = false;
     }
   }, [hasError]);
-
-  // Fetch session name from backend when streaming completes for new chats
-  useEffect(() => {
-    const wasStreaming = prevStatus.current === 'streaming';
-    const isNowReady = status === 'ready';
-    const isNewChat = currentSession?.name === 'New Chat';
-
-    if (wasStreaming && isNowReady && isNewChat && currentSession?.id && !hasFetchedSessionName.current) {
-      hasFetchedSessionName.current = true;
-      fetchSession(currentSession.id).then((session) => {
-        if (session?.name && session.name !== 'New Chat') {
-          dispatch(updateSessionName({ sessionId: currentSession.id, name: session.name }));
-        }
-      });
-    }
-
-    prevStatus.current = status;
-  }, [status, currentSession, dispatch]);
 
   const {
     scrollContainerRef,

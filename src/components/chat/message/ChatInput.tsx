@@ -6,7 +6,7 @@ import type { ChangeEvent } from 'react';
 import RotatingText from '@/components/animation/RotatingText';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useChat } from '@ai-sdk/react';
-import { bumpSessionToTop, addNewSession } from '@/store/slices/chatSlice';
+import { bumpSessionToTop, addNewSession, generateSessionNameRequest } from '@/store/slices/chatSlice';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { chatConfig } from '@/config';
 import { generateObjectId, getUserCookie } from '@/lib/utils';
@@ -61,6 +61,17 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
 
     const userCookie = getUserCookie();
+    
+    // Dispatch name generation request in parallel with sending message
+    // For new chats, always generate name. For existing chats, saga checks turn number.
+    const turnNumber = currentSession?.latest_turn_number ?? 0;
+    dispatch(generateSessionNameRequest({
+      sessionId: sessionId ?? null,
+      query: trimmedMessage,
+      isNewSession: newChat,
+      turnNumber: turnNumber + 1, // Next turn number after this message
+    }));
+
     await sendMessage(
       { text: trimmedMessage },
       {

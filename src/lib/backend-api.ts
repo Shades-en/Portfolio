@@ -292,3 +292,94 @@ export async function updateMessageFeedback(
     return null;
   }
 }
+
+interface GenerateNameParams {
+  readonly query: string;
+  readonly turnsBetweenChatName?: number;
+  readonly maxChatNameLength?: number;
+  readonly maxChatNameWords?: number;
+}
+
+interface GenerateNameResponse {
+  readonly name: string;
+  readonly session_id: string | null;
+}
+
+export async function generateNewSessionName(
+  params: GenerateNameParams,
+  userId?: string
+): Promise<GenerateNameResponse | null> {
+  console.log('[backend-api] generateNewSessionName invoked');
+  try {
+    const headers: Record<string, string> = {
+      'accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+    if (userId) {
+      headers['X-User-Id'] = userId;
+    }
+
+    const response = await fetch(
+      `${serverConfig.backendApiUrl}/sessions/generate-name`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          query: params.query,
+          turns_between_chat_name: params.turnsBetweenChatName ?? 20,
+          max_chat_name_length: params.maxChatNameLength ?? 50,
+          max_chat_name_words: params.maxChatNameWords ?? 5,
+        }),
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Failed to generate new session name:', response.status);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error generating new session name:', error);
+    return null;
+  }
+}
+
+export async function generateSessionName(
+  sessionId: string,
+  userId: string,
+  params: GenerateNameParams
+): Promise<GenerateNameResponse | null> {
+  console.log('[backend-api] generateSessionName invoked');
+  try {
+    const response = await fetch(
+      `${serverConfig.backendApiUrl}/sessions/${sessionId}/generate-name`,
+      {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-User-Id': userId,
+        },
+        body: JSON.stringify({
+          query: params.query,
+          turns_between_chat_name: params.turnsBetweenChatName ?? 20,
+          max_chat_name_length: params.maxChatNameLength ?? 50,
+          max_chat_name_words: params.maxChatNameWords ?? 5,
+        }),
+        cache: 'no-store',
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Failed to generate session name:', response.status);
+      return null;
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error generating session name:', error);
+    return null;
+  }
+}

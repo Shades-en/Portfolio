@@ -177,3 +177,5 @@ export default function Chat({
 }
 
 // When message is generating and i click stop the width occupation is messed up -> is there a way the stop can propagate to backend
+// Reorganise slices, slice reducers, it looks very messy otherwise.
+// Have to add a session check for stop button as well

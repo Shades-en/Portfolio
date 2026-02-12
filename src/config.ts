@@ -14,7 +14,10 @@ export const chatConfig = {
     'my skills',
     'my accomplishments',
   ],
-  requestTimeoutMs: 10000, // 5 seconds timeout for chat requests
+  requestTimeoutMs: 10000, // 10 seconds timeout for chat requests
+  turnsBetweenChatName: 20,
+  maxChatNameLength: 50,
+  maxChatNameWords: 5,
 } as const;
 
 export const breakpoints = {

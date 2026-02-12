@@ -26,8 +26,10 @@ import {
   updateMessageFeedbackRequest,
   updateMessageFeedbackSuccess,
   updateMessageFeedbackFailure,
+  generateSessionNameRequest,
 } from '@/store/slices/chatSlice';
-import { fetchUser, fetchSessions, fetchAllSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions, fetchSession, updateMessageFeedback } from '@/lib/api/chat';
+import { fetchUser, fetchSessions, fetchAllSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions, fetchSession, updateMessageFeedback, generateNewSessionName, generateSessionName } from '@/lib/api/chat';
+import { chatConfig } from '@/config';
 import type { User, SessionsResponse, MessagesResponse, AllSessionsResponse } from '@/types/chat';
 
 function* fetchSessionsSaga(
@@ -247,6 +249,67 @@ function* watchUpdateMessageFeedback(): Generator {
   yield takeLatest(updateMessageFeedbackRequest.type, updateMessageFeedbackSaga);
 }
 
+interface GenerateNameResponse {
+  readonly name: string;
+  readonly session_id: string | null;
+}
+
+function* generateSessionNameSaga(
+  action: PayloadAction<{
+    readonly sessionId: string | null;
+    readonly query: string;
+    readonly isNewSession: boolean;
+    readonly turnNumber: number;
+  }>
+): Generator {
+  try {
+    const { sessionId, query, isNewSession, turnNumber } = action.payload;
+    const { turnsBetweenChatName, maxChatNameLength, maxChatNameWords } = chatConfig;
+
+    // Only generate name if it's a new session OR turn number is divisible by turnsBetweenChatName
+    const shouldGenerateName = isNewSession || (turnNumber > 0 && turnNumber % turnsBetweenChatName === 0);
+
+    if (!shouldGenerateName) {
+      return;
+    }
+
+    let result: GenerateNameResponse | null;
+
+    if (isNewSession || !sessionId) {
+      result = (yield call(generateNewSessionName, {
+        query,
+        turnsBetweenChatName,
+        maxChatNameLength,
+        maxChatNameWords,
+      })) as GenerateNameResponse | null;
+    } else {
+      result = (yield call(generateSessionName, sessionId, {
+        query,
+        turnsBetweenChatName,
+        maxChatNameLength,
+        maxChatNameWords,
+      })) as GenerateNameResponse | null;
+    }
+
+    if (result?.name) {
+      const targetSessionId = sessionId ?? result.session_id;
+      if (targetSessionId) {
+        // For new sessions, persist the generated name to DB since the session was created in parallel
+        if (isNewSession) {
+          yield call(renameSession, targetSessionId, result.name);
+        }
+        yield put(updateSessionName({ sessionId: targetSessionId, name: result.name }));
+      }
+    }
+  } catch (error) {
+    console.error('Error in generate session name saga:', error);
+  }
+}
+
+function* watchGenerateSessionName(): Generator {
+  yield takeLatest(generateSessionNameRequest.type, generateSessionNameSaga);
+}
+
 export default function* chatSaga(): Generator {
   yield all([
     watchFetchSessions(),
@@ -258,5 +321,6 @@ export default function* chatSaga(): Generator {
     watchFetchInitialData(),
     watchFetchCurrentSession(),
     watchUpdateMessageFeedback(),
+    watchGenerateSessionName(),
   ]);
 }

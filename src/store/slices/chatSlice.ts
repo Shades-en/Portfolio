@@ -340,6 +340,18 @@ const chatSlice = createSlice({
       // Failure - component will revert optimistic update via callback
     },
 
+    generateSessionNameRequest: (
+      _state,
+      _action: PayloadAction<{
+        readonly sessionId: string | null;
+        readonly query: string;
+        readonly isNewSession: boolean;
+        readonly turnNumber: number;
+      }>
+    ) => {
+      // Saga handles the API call
+    },
+
     resetChat: () => initialState,
   },
 });
@@ -378,6 +390,7 @@ export const {
   updateMessageFeedbackRequest,
   updateMessageFeedbackSuccess,
   updateMessageFeedbackFailure,
+  generateSessionNameRequest,
   resetChat,
 } = chatSlice.actions;
 
