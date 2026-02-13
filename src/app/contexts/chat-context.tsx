@@ -5,6 +5,8 @@ import { Chat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Message } from '@/types/chat';
 
+type ApiType = 'responses' | 'chat_completion';
+
 interface ChatContextValue {
   chat: Chat<Message>;
 }
@@ -37,7 +39,7 @@ function createChat() {
             id: lastMessage?.id ?? '',
           },
           options: {
-            api_type: 'responses'
+            api_type: 'chat_completion' as ApiType,
           }
         };
 

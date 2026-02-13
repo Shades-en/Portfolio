@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateNewSessionName } from '@/lib/backend-api';
+import { generateSessionName } from '@/lib/backend-api';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const { query, turns_between_chat_name, max_chat_name_length, max_chat_name_words } = body;
+    const { query, session_id, turns_between_chat_name, max_chat_name_length, max_chat_name_words } = body;
 
-    if (!query) {
+    if (!query && !session_id) {
       return NextResponse.json(
-        { error: 'Query is required' },
+        { error: 'Query is required when session_id is not provided' },
         { status: 400 }
       );
     }
 
-    const result = await generateNewSessionName({
+    const result = await generateSessionName({
       query,
+      sessionId: session_id,
       turnsBetweenChatName: turns_between_chat_name,
       maxChatNameLength: max_chat_name_length,
       maxChatNameWords: max_chat_name_words,

@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowUpRight, Paperclip, Plus, CircleStop } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import RotatingText from '@/components/animation/RotatingText';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useChat } from '@ai-sdk/react';
-import { bumpSessionToTop, addNewSession, generateSessionNameRequest } from '@/store/slices/chatSlice';
+import { bumpSessionToTop, addNewSession, generateSessionNameRequest, clearPendingSessionName } from '@/store/slices/chatSlice';
 import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { chatConfig } from '@/config';
 import { generateObjectId, getUserCookie } from '@/lib/utils';
+import { cancelChatGeneration, renameSession } from '@/lib/api/chat';
 import '../chat.css';
 
 interface ChatInputProps {
@@ -27,18 +28,39 @@ const ChatInput: React.FC<ChatInputProps> = ({
   newChat = false,
 }) => {
   const dispatch = useAppDispatch();
-  const { isMobile, currentSession, user } = useAppSelector((state) => state.chat);
+  const { currentSession, user, pendingSessionName } = useAppSelector((state) => state.chat);
   const { chat } = useSharedChatContext();
-  const { status, sendMessage } = useChat({ chat });
+  const { status, sendMessage, messages, stop } = useChat({ chat });
   const isBusy = status === 'streaming' || status === 'submitted';
   const [message, setMessage] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [showNewChatUI, setShowNewChatUI] = useState(newChat);
+  const prevStatusRef = useRef(status);
+
+  // Persist pending session name to DB when streaming completes
+  useEffect(() => {
+    const wasStreaming = prevStatusRef.current === 'streaming' || prevStatusRef.current === 'submitted';
+    const isNowReady = status === 'ready';
+
+    if (wasStreaming && isNowReady && pendingSessionName) {
+      void renameSession(pendingSessionName.sessionId, pendingSessionName.name);
+      dispatch(clearPendingSessionName());
+    }
+
+    prevStatusRef.current = status;
+  }, [status, pendingSessionName, dispatch]);
 
   const handleClick = (): void => {
-    void handleSend();
+    if (isBusy) {
+      stop();
+      if (currentSession?.id) {
+        void cancelChatGeneration(currentSession.id);
+      }
+    } else {
+      void handleSend();
+    }
   };
 
   const handleSend = async (): Promise<void> => {
@@ -175,7 +197,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             </button>
             {isBusy ? (
               <button
-                onClick={stop}
+                onClick={handleClick}
                 className="shrink-0 h-9 w-9 grid place-items-center rounded-xl hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all"
                 title="Stop generating"
                 type="button"

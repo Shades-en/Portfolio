@@ -176,6 +176,7 @@ export default function Chat({
   );
 }
 
-// When message is generating and i click stop the width occupation is messed up -> is there a way the stop can propagate to backend
+// When i click stop button it doesnt show like dislike button when messages not stored in db yet
+// When new user and new session, session name is not saving in db
 // Reorganise slices, slice reducers, it looks very messy otherwise.
-// Have to add a session check for stop button as well
+// Have to add a session check for stop button as well otherwise it shows up in other sessions

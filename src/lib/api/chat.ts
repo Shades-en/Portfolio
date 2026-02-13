@@ -210,6 +210,7 @@ export async function updateMessageFeedback(
 
 interface GenerateNameParams {
   readonly query: string;
+  readonly sessionId?: string;
   readonly turnsBetweenChatName?: number;
   readonly maxChatNameLength?: number;
   readonly maxChatNameWords?: number;
@@ -220,7 +221,7 @@ interface GenerateNameResponse {
   readonly session_id: string | null;
 }
 
-export async function generateNewSessionName(
+export async function generateSessionName(
   params: GenerateNameParams
 ): Promise<GenerateNameResponse | null> {
   try {
@@ -231,36 +232,7 @@ export async function generateNewSessionName(
       },
       body: JSON.stringify({
         query: params.query,
-        turns_between_chat_name: params.turnsBetweenChatName,
-        max_chat_name_length: params.maxChatNameLength,
-        max_chat_name_words: params.maxChatNameWords,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Failed to generate new session name:', response.status);
-      return null;
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error generating new session name:', error);
-    return null;
-  }
-}
-
-export async function generateSessionName(
-  sessionId: string,
-  params: GenerateNameParams
-): Promise<GenerateNameResponse | null> {
-  try {
-    const response = await fetch(`/api/chat/sessions/${sessionId}/generate-name`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: params.query,
+        session_id: params.sessionId,
         turns_between_chat_name: params.turnsBetweenChatName,
         max_chat_name_length: params.maxChatNameLength,
         max_chat_name_words: params.maxChatNameWords,
@@ -276,5 +248,24 @@ export async function generateSessionName(
   } catch (error) {
     console.error('Error generating session name:', error);
     return null;
+  }
+}
+
+export async function cancelChatGeneration(
+  sessionId: string
+): Promise<boolean> {
+  try {
+    const response = await fetch('/api/chat/cancel', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error cancelling chat generation:', error);
+    return false;
   }
 }

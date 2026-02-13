@@ -27,8 +27,9 @@ import {
   updateMessageFeedbackSuccess,
   updateMessageFeedbackFailure,
   generateSessionNameRequest,
+  setPendingSessionName,
 } from '@/store/slices/chatSlice';
-import { fetchUser, fetchSessions, fetchAllSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions, fetchSession, updateMessageFeedback, generateNewSessionName, generateSessionName } from '@/lib/api/chat';
+import { fetchUser, fetchSessions, fetchAllSessions, fetchMessages, renameSession, toggleStarSession, deleteAllSessions, fetchSession, updateMessageFeedback, generateSessionName } from '@/lib/api/chat';
 import { chatConfig } from '@/config';
 import type { User, SessionsResponse, MessagesResponse, AllSessionsResponse } from '@/types/chat';
 
@@ -273,32 +274,20 @@ function* generateSessionNameSaga(
       return;
     }
 
-    let result: GenerateNameResponse | null;
-
-    if (isNewSession || !sessionId) {
-      result = (yield call(generateNewSessionName, {
-        query,
-        turnsBetweenChatName,
-        maxChatNameLength,
-        maxChatNameWords,
-      })) as GenerateNameResponse | null;
-    } else {
-      result = (yield call(generateSessionName, sessionId, {
-        query,
-        turnsBetweenChatName,
-        maxChatNameLength,
-        maxChatNameWords,
-      })) as GenerateNameResponse | null;
-    }
+    const result = (yield call(generateSessionName, {
+      query,
+      sessionId: sessionId ?? undefined,
+      turnsBetweenChatName,
+      maxChatNameLength,
+      maxChatNameWords,
+    })) as GenerateNameResponse | null;
 
     if (result?.name) {
       const targetSessionId = sessionId ?? result.session_id;
       if (targetSessionId) {
-        // For new sessions, persist the generated name to DB since the session was created in parallel
-        if (isNewSession) {
-          yield call(renameSession, targetSessionId, result.name);
-        }
         yield put(updateSessionName({ sessionId: targetSessionId, name: result.name }));
+        // Set pending session name so component can persist it to DB after streaming completes
+        yield put(setPendingSessionName({ sessionId: targetSessionId, name: result.name }));
       }
     }
   } catch (error) {

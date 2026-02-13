@@ -1,11 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { User, Session, SessionsResponse, AllSessionsResponse } from '@/types/chat';
 
+interface PendingSessionName {
+  readonly sessionId: string;
+  readonly name: string;
+}
+
 interface ChatState {
   readonly user: User | null;
   readonly sessions: Session[];
   readonly sessionsCount: number;
   readonly currentSession: Session | null;
+  readonly pendingSessionName: PendingSessionName | null;
   readonly isTablet: boolean;
   readonly isMobile: boolean;
   readonly sidebarCollapsed: boolean;
@@ -46,6 +52,7 @@ const initialState: ChatState = {
   sessions: [],
   sessionsCount: 0,
   currentSession: null,
+  pendingSessionName: null,
   isTablet: false,
   isMobile: false,
   sidebarCollapsed: false,
@@ -196,6 +203,17 @@ const chatSlice = createSlice({
           name: action.payload.name,
         };
       }
+    },
+
+    setPendingSessionName: (state, action: PayloadAction<{ readonly sessionId: string; readonly name: string }>) => {
+      state.pendingSessionName = {
+        sessionId: action.payload.sessionId,
+        name: action.payload.name,
+      };
+    },
+
+    clearPendingSessionName: (state) => {
+      state.pendingSessionName = null;
     },
 
     updateSessionStarred: (state, action: PayloadAction<{ readonly sessionId: string; readonly starred: boolean }>) => {
@@ -373,6 +391,8 @@ export const {
   setLoadingCurrentSession,
   setCurrentSessionError,
   updateSessionName,
+  setPendingSessionName,
+  clearPendingSessionName,
   updateSessionStarred,
   renameSessionRequest,
   toggleStarSessionRequest,
