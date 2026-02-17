@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { renameSession, callBackendUser } from '@/lib/backend-api';
+import { renameSession } from '@/lib/backend-api';
 
 export async function PATCH(
   request: NextRequest,
@@ -17,14 +17,6 @@ export async function PATCH(
       );
     }
 
-    const user = await callBackendUser(userCookie.value);
-    if (!user?.id) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      );
-    }
-
     const { sessionId } = await params;
     const body = await request.json();
     const { name } = body;
@@ -36,7 +28,7 @@ export async function PATCH(
       );
     }
 
-    const updatedSession = await renameSession(sessionId, user.id, name);
+    const updatedSession = await renameSession(sessionId, userCookie.value, name);
 
     if (!updatedSession) {
       return NextResponse.json(

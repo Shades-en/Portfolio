@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { generateSessionName } from '@/lib/backend-api';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const cookieStore = await cookies();
+    const userCookie = cookieStore.get('user_cookie');
+
+    if (!userCookie?.value) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { query, session_id, turns_between_chat_name, max_chat_name_length, max_chat_name_words } = body;
 
@@ -14,6 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const result = await generateSessionName({
+      cookieId: userCookie.value,
       query,
       sessionId: session_id,
       turnsBetweenChatName: turns_between_chat_name,

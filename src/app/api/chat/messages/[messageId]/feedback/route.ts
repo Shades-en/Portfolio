@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { updateMessageFeedback, callBackendUser } from '@/lib/backend-api';
+import { updateMessageFeedback } from '@/lib/backend-api';
 
 export async function PATCH(
   request: NextRequest,
@@ -17,14 +17,6 @@ export async function PATCH(
       );
     }
 
-    const user = await callBackendUser(userCookie.value);
-    if (!user?.id) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      );
-    }
-
     const { messageId } = await params;
     const body = await request.json();
     const { feedback } = body;
@@ -36,7 +28,7 @@ export async function PATCH(
       );
     }
 
-    const result = await updateMessageFeedback(messageId, user.id, feedback);
+    const result = await updateMessageFeedback(messageId, userCookie.value, feedback);
 
     if (!result) {
       return NextResponse.json(

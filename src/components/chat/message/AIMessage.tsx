@@ -9,9 +9,10 @@ import '../chat.css';
 
 interface AIMessageProps {
   readonly message: Message;
+  readonly isStreaming?: boolean;
 }
 
-const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
+const AIMessage: React.FC<AIMessageProps> = ({ message, isStreaming = false }) => {
   const [copied, setCopied] = useState(false);
   const { liked, disliked, handleLike, handleDislike } = useMessageFeedback({
     messageId: message.id,
@@ -28,11 +29,14 @@ const AIMessage: React.FC<AIMessageProps> = ({ message }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isMessageReady = (message: Message): boolean => {
-    if (!message.parts?.length) {
+  const isMessageReady = (msg: Message): boolean => {
+    if (!msg.parts?.length) {
       return false;
     }
-    const lastPart = message.parts.at(-1) as { state?: string } | undefined;
+    if (!isStreaming) {
+      return true;
+    }
+    const lastPart = msg.parts.at(-1) as { state?: string } | undefined;
     if (lastPart?.state === undefined) {
       return true;
     }

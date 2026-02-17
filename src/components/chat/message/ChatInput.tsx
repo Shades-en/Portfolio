@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowUpRight, Paperclip, Plus, CircleStop } from 'lucide-react';
+import { ArrowUpRight, Paperclip, CircleStop } from 'lucide-react';
 import type { ChangeEvent } from 'react';
 import RotatingText from '@/components/animation/RotatingText';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
@@ -11,27 +11,30 @@ import { useSharedChatContext } from '@/app/contexts/chat-context';
 import { chatConfig } from '@/config';
 import { generateObjectId, getUserCookie } from '@/lib/utils';
 import { cancelChatGeneration, renameSession } from '@/lib/api/chat';
+import QuickSuggestions from './QuickSuggestions';
 import '../chat.css';
 
 interface ChatInputProps {
   readonly newChat?: boolean;
 }
 
-const QUICK_SUGGESTIONS = [
-  'Tell me about your projects',
-  'What\'s your experience with AI/ML?',
-  'Show me your tech stack',
-  'How can I contact you?',
-];
 
 const ChatInput: React.FC<ChatInputProps> = ({ 
   newChat = false,
 }) => {
   const dispatch = useAppDispatch();
-  const { currentSession, user, pendingSessionName } = useAppSelector((state) => state.chat);
-  const { chat } = useSharedChatContext();
-  const { status, sendMessage, messages, stop } = useChat({ chat });
-  const isBusy = status === 'streaming' || status === 'submitted';
+  const { currentSession, pendingSessionName } = useAppSelector((state) => state.chat);
+  const { getOrCreateChat } = useSharedChatContext();
+  // For new chat, track the generated sessionId so we use the same Chat instance
+  const [newChatSessionId, setNewChatSessionId] = useState<string | null>(null);
+  // Use the generated sessionId for new chats (after first message), otherwise use currentSession.id
+  const sessionIdForChat = newChat ? (newChatSessionId ?? 'new') : (currentSession?.id ?? 'new');
+  const chat = getOrCreateChat(sessionIdForChat);
+  const { status, stop } = useChat({ chat });
+  const isStreaming = status === 'streaming' || status === 'submitted';
+  // isBusy is true when the current session's Chat instance is streaming
+  // This works correctly when switching sessions because each session has its own Chat instance
+  const isBusy = isStreaming;
   const [message, setMessage] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
@@ -44,9 +47,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
     const wasStreaming = prevStatusRef.current === 'streaming' || prevStatusRef.current === 'submitted';
     const isNowReady = status === 'ready';
 
-    if (wasStreaming && isNowReady && pendingSessionName) {
-      void renameSession(pendingSessionName.sessionId, pendingSessionName.name);
-      dispatch(clearPendingSessionName());
+    if (wasStreaming && isNowReady) {
+      if (pendingSessionName) {
+        void renameSession(pendingSessionName.sessionId, pendingSessionName.name);
+        dispatch(clearPendingSessionName());
+      }
     }
 
     prevStatusRef.current = status;
@@ -71,13 +76,20 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
 
     let sessionId = currentSession?.id;
+    let chatToUse = chat;
 
     if (newChat) {
-      sessionId = generateObjectId();
-      dispatch(addNewSession({ sessionId, name: 'New Chat' }));
-      // Use replaceState to update URL without full page navigation
-      // This preserves the AI SDK chat context and avoids server-side fetch for non-existent session
-      window.history.replaceState(null, '', `/chat/${sessionId}`);
+      // Generate sessionId and update state so we use the same Chat instance
+      sessionId = newChatSessionId ?? generateObjectId();
+      if (!newChatSessionId) {
+        setNewChatSessionId(sessionId);
+        // Get the Chat instance for the new sessionId immediately (before state updates)
+        chatToUse = getOrCreateChat(sessionId);
+        dispatch(addNewSession({ sessionId, name: 'New Chat' }));
+        // Use replaceState to update URL without full page navigation
+        // This preserves the AI SDK chat context and avoids server-side fetch for non-existent session
+        globalThis.history.replaceState(null, '', `/chat/${sessionId}`);
+      }
     } else if (sessionId) {
       dispatch(bumpSessionToTop({ sessionId }));
     }
@@ -94,15 +106,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
       turnNumber: turnNumber + 1, // Next turn number after this message
     }));
 
-    await sendMessage(
+    // Use chatToUse.sendMessage directly for new chats to ensure correct Chat instance
+    await chatToUse.sendMessage(
       { text: trimmedMessage },
       {
         body: {
           user_cookie: userCookie,
           session_id: sessionId,
-          user_id: user?.id,
-          new_chat: newChat,
-          new_user: !(user?.id)
         }
       }
     );
@@ -113,10 +123,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
-  const handleSuggestion = (suggestion: string): void => {
-    setMessage(suggestion);
-    setShowSuggestions(false);
-  };
 
   const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>): void => {
     setMessage(e.target.value);
@@ -217,20 +223,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
             )}
           </div>
         </div>
-        {/* Quick Suggestions */}
         {showNewChatUI && showSuggestions && (
-          <div className="grid grid-cols-1 sm:place-items-start place-items-center sm:grid-cols-2 gap-2 flex w-full justify-center sm:mt-2 mt-10">
-            {QUICK_SUGGESTIONS.map((suggestion) => (
-              <button
-                key={suggestion}
-                onClick={() => handleSuggestion(suggestion)}
-                className="flex items-center sm:justify-start justify-center gap-2 w-fit mx-4 my-3 text-foreground text-sm transition-all duration-200 hover:border-primary/50 group"
-              >
-                <Plus size={16} className="text-primary w-4 h-4 flex-shrink-0" />
-                <span className="text-center sm:text-left hover:text-primary transition-colors duration-200">{suggestion}</span>
-              </button>
-            ))}
-          </div>
+          <QuickSuggestions onSelect={(suggestion) => {
+            setMessage(suggestion);
+            setShowSuggestions(false);
+          }} />
         )}
       </div>
     </div>

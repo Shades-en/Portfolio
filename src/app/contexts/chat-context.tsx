@@ -1,19 +1,19 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useState, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useRef, useCallback, useMemo } from 'react';
 import { Chat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Message } from '@/types/chat';
-
-type ApiType = 'responses' | 'chat_completion';
+import { chatConfig } from '@/config';
 
 interface ChatContextValue {
-  chat: Chat<Message>;
+  getOrCreateChat: (sessionId: string) => Chat<Message>;
+  deleteChat: (sessionId: string) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
 
-function createChat() {
+function createChat(): Chat<Message> {
   return new Chat<Message>({
     transport: new DefaultChatTransport({
       api: '/api/chat/stream',
@@ -36,11 +36,10 @@ function createChat() {
           ...customBody,
           query_message: {
             query: textPart?.text ?? '',
-            id: lastMessage?.id ?? '',
           },
-          options: {
-            api_type: 'chat_completion' as ApiType,
-          }
+          provider_options: {
+            api_type: chatConfig.response.apiType,
+          },
         };
 
         return {
@@ -53,9 +52,23 @@ function createChat() {
 }
 
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const [chat, setChat] = useState(() => createChat());
+  const chatMapRef = useRef<Map<string, Chat<Message>>>(new Map());
 
-  const value = useMemo(() => ({ chat }), [chat]);
+  const getOrCreateChat = useCallback((sessionId: string): Chat<Message> => {
+    const existingChat = chatMapRef.current.get(sessionId);
+    if (existingChat) {
+      return existingChat;
+    }
+    const newChat = createChat();
+    chatMapRef.current.set(sessionId, newChat);
+    return newChat;
+  }, []);
+
+  const deleteChat = useCallback((sessionId: string): void => {
+    chatMapRef.current.delete(sessionId);
+  }, []);
+
+  const value = useMemo(() => ({ getOrCreateChat, deleteChat }), [getOrCreateChat, deleteChat]);
 
   return (
     <ChatContext.Provider value={value}>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { deleteSession as deleteSessionFromBackend, callBackendSession, callBackendUser } from '@/lib/backend-api';
+import { deleteSession as deleteSessionFromBackend, callBackendSession } from '@/lib/backend-api';
 
 export async function GET(
   request: NextRequest,
@@ -14,13 +14,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await callBackendUser(userCookie.value);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
-    }
-
     const { sessionId } = await params;
-    const session = await callBackendSession(sessionId, user.id);
+    const session = await callBackendSession(sessionId, userCookie.value);
 
     if (!session) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
@@ -45,13 +40,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await callBackendUser(userCookie.value);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
-    }
-
     const { sessionId } = await params;
-    const result = await deleteSessionFromBackend(sessionId, user.id);
+    const result = await deleteSessionFromBackend(sessionId, userCookie.value);
 
     if (!result) {
       return NextResponse.json({ error: 'Failed to delete session' }, { status: 500 });

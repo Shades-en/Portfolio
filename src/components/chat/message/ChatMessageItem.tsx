@@ -14,13 +14,17 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message, isStreaming 
   }
   
   if (message.role === 'assistant') {
-    return <AIMessage message={message} />;
+    return <AIMessage message={message} isStreaming={isStreaming} />;
   }
   
   return null;
 };
 
 export default React.memo(ChatMessageItem, (prevProps, nextProps) => {
+  // Re-render if isStreaming changes
+  if (prevProps.isStreaming !== nextProps.isStreaming) {
+    return false;
+  }
   // Always re-render if streaming the current message
   if (nextProps.isStreaming) {
     return false;

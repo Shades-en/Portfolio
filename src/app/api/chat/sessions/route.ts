@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { callBackendSessions, deleteAllSessions, callBackendUser } from '@/lib/backend-api';
+import { callBackendSessions, deleteAllSessions } from '@/lib/backend-api';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -49,13 +49,7 @@ export async function DELETE(): Promise<NextResponse> {
       );
     }
 
-    const user = await callBackendUser(userCookie.value);
-    
-    if (!user?.id) {
-      return NextResponse.json({ error: 'Failed to get user information' }, { status: 500 });
-    }
-
-    const result = await deleteAllSessions(user.id);
+    const result = await deleteAllSessions(userCookie.value);
 
     if (!result) {
       return NextResponse.json({ error: 'Failed to delete all sessions' }, { status: 500 });

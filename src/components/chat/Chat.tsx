@@ -41,17 +41,18 @@ export default function Chat({
   const isLoadingSession = loading.currentSession;
   const sessionError = error.currentSession;
 
-  const { chat } = useSharedChatContext();
+  const { getOrCreateChat } = useSharedChatContext();
+  // Use reduxCurrentSession.id when available (handles optimistic new chat creation via replaceState)
+  // Fall back to sessionId prop, then 'new' for the new chat page
+  const effectiveSessionId = reduxCurrentSession?.id ?? sessionId ?? 'new';
+  const chat = getOrCreateChat(effectiveSessionId);
   const { messages, setMessages } = useChat({ chat });
 
-  const fetchSessionAndMessages = useCallback(async (targetSessionId: string) => {
+  const fetchSessionAndMessages = useCallback(async (targetSessionId: string, currentMessages: typeof messages) => {
     if (hasFetchedSessionRef.current === targetSessionId) {
       return;
     }
     hasFetchedSessionRef.current = targetSessionId;
-    
-    // Clear messages immediately to show skeleton
-    setMessages([]);
     dispatch(setCurrentSessionError(null));
 
     // Check cache first, otherwise dispatch saga to fetch session
@@ -60,6 +61,12 @@ export default function Chat({
       dispatch(setCurrentSession(cachedSession));
     } else {
       dispatch(fetchCurrentSessionRequest(targetSessionId));
+    }
+
+    // If the Chat instance already has messages (e.g., actively streaming), don't overwrite them
+    // This preserves the user message and streaming AI response when switching back to a session
+    if (currentMessages.length > 0) {
+      return;
     }
 
     // Fetch messages (must stay in component due to AI SDK hook)
@@ -99,7 +106,7 @@ export default function Chat({
 
   useEffect(() => {
     if (sessionId) {
-      fetchSessionAndMessages(sessionId);
+      fetchSessionAndMessages(sessionId, messages);
     } else {
       setMessages([]);
       dispatch(setCurrentSession(null));
@@ -138,7 +145,10 @@ export default function Chat({
     }
   };
 
-  const isWaitingForMessages = isOnSessionPage && reduxCurrentSession && messages.length === 0 && !sessionError;
+  // For optimistically created sessions (via ChatInput), hasFetchedSessionRef won't match the session ID
+  // In that case, don't show skeleton - let ChatMessages handle the streaming
+  const isOptimisticSession = reduxCurrentSession && hasFetchedSessionRef.current !== reduxCurrentSession.id;
+  const isWaitingForMessages = isOnSessionPage && reduxCurrentSession && messages.length === 0 && !sessionError && !isOptimisticSession;
   // Show skeleton when on session page, no session loaded, and we haven't fetched this session yet
   // This distinguishes page reload (hasFetchedSessionRef is null) from navigating away (hasFetchedSessionRef has value)
   const isSessionPageLoading = isOnSessionPage && !reduxCurrentSession && !sessionError && !hasFetchedSessionRef.current;
@@ -176,7 +186,4 @@ export default function Chat({
   );
 }
 
-// When i click stop button it doesnt show like dislike button when messages not stored in db yet
-// When new user and new session, session name is not saving in db
 // Reorganise slices, slice reducers, it looks very messy otherwise.
-// Have to add a session check for stop button as well otherwise it shows up in other sessions

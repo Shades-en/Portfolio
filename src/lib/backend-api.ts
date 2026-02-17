@@ -1,16 +1,17 @@
 import { cache } from 'react';
 import 'server-only';
-import { serverConfig } from '@/config';
+import { serverConfig, chatConfig } from '@/config';
 import type { User, Session, SessionsResponse, MessagesResponse, AllSessionsResponse } from '@/types/chat';
 
 export const callBackendUser = cache(async (cookieId: string): Promise<User | null> => {
   console.log('[backend-api] callBackendUser invoked');
   try {
     const response = await fetch(
-      `${serverConfig.backendApiUrl}/users?cookie_id=${encodeURIComponent(cookieId)}`,
+      `${serverConfig.backendApiUrl}/users`,
       {
         headers: {
           'accept': 'application/json',
+          'x-cookie-id': cookieId,
         },
         cache: 'no-store',
       }
@@ -40,10 +41,11 @@ export const callBackendSessions = cache(async (
   console.log('[backend-api] callBackendSessions invoked');
   try {
     const response = await fetch(
-      `${serverConfig.backendApiUrl}/sessions?cookie_id=${encodeURIComponent(cookieId)}&page=${page}&page_size=${pageSize}`,
+      `${serverConfig.backendApiUrl}/sessions?page=${page}&page_size=${pageSize}`,
       {
         headers: {
           'accept': 'application/json',
+          'x-cookie-id': cookieId,
         },
         cache: 'no-store',
       }
@@ -65,10 +67,11 @@ export const callBackendAllSessions = cache(async (cookieId: string): Promise<Al
   console.log('[backend-api] callBackendAllSessions invoked');
   try {
     const response = await fetch(
-      `${serverConfig.backendApiUrl}/sessions/all?cookie_id=${encodeURIComponent(cookieId)}`,
+      `${serverConfig.backendApiUrl}/sessions/all`,
       {
         headers: {
           'accept': 'application/json',
+          'x-cookie-id': cookieId,
         },
         cache: 'no-store',
       }
@@ -86,7 +89,7 @@ export const callBackendAllSessions = cache(async (cookieId: string): Promise<Al
   }
 });
 
-export const callBackendSession = cache(async (sessionId: string, userId: string): Promise<Session | null> => {
+export const callBackendSession = cache(async (sessionId: string, cookieId: string): Promise<Session | null> => {
   console.log('[backend-api] callBackendSession invoked');
   try {
     const response = await fetch(
@@ -94,7 +97,7 @@ export const callBackendSession = cache(async (sessionId: string, userId: string
       {
         headers: {
           'accept': 'application/json',
-          'X-User-Id': userId,
+          'x-cookie-id': cookieId,
         },
         cache: 'no-store',
       }
@@ -117,7 +120,7 @@ export const callBackendSession = cache(async (sessionId: string, userId: string
 
 export const callBackendMessages = cache(async (
   sessionId: string,
-  userId: string,
+  cookieId: string,
   page: number = 1,
   pageSize: number = 50
 ): Promise<MessagesResponse | null> => {
@@ -128,7 +131,7 @@ export const callBackendMessages = cache(async (
       {
         headers: {
           'accept': 'application/json',
-          'X-User-Id': userId,
+          'x-cookie-id': cookieId,
         },
         cache: 'no-store',
       }
@@ -149,7 +152,7 @@ export const callBackendMessages = cache(async (
   }
 });
 
-export async function renameSession(sessionId: string, userId: string, newName: string): Promise<Session | null> {
+export async function renameSession(sessionId: string, cookieId: string, newName: string): Promise<Session | null> {
   console.log('[backend-api] renameSession invoked');
   try {
     const response = await fetch(
@@ -159,7 +162,7 @@ export async function renameSession(sessionId: string, userId: string, newName: 
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-User-Id': userId,
+          'x-cookie-id': cookieId,
         },
         body: JSON.stringify({ name: newName }),
         cache: 'no-store',
@@ -178,7 +181,7 @@ export async function renameSession(sessionId: string, userId: string, newName: 
   }
 }
 
-export async function toggleStarSession(sessionId: string, userId: string, starred: boolean): Promise<{ session_updated: boolean; session_id: string; starred: boolean } | null> {
+export async function toggleStarSession(sessionId: string, cookieId: string, starred: boolean): Promise<{ session_updated: boolean; session_id: string; starred: boolean } | null> {
   console.log('[backend-api] toggleStarSession invoked');
   try {
     const response = await fetch(
@@ -188,7 +191,7 @@ export async function toggleStarSession(sessionId: string, userId: string, starr
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-User-Id': userId,
+          'x-cookie-id': cookieId,
         },
         body: JSON.stringify({ starred }),
         cache: 'no-store',
@@ -207,7 +210,7 @@ export async function toggleStarSession(sessionId: string, userId: string, starr
   }
 }
 
-export async function deleteSession(sessionId: string, userId: string): Promise<{ messages_deleted: number; summaries_deleted: number; session_deleted: boolean } | null> {
+export async function deleteSession(sessionId: string, cookieId: string): Promise<{ messages_deleted: number; summaries_deleted: number; session_deleted: boolean } | null> {
   console.log('[backend-api] deleteSession invoked');
   try {
     const response = await fetch(
@@ -216,7 +219,7 @@ export async function deleteSession(sessionId: string, userId: string): Promise<
         method: 'DELETE',
         headers: {
           'accept': 'application/json',
-          'X-User-Id': userId,
+          'x-cookie-id': cookieId,
         },
         cache: 'no-store',
       }
@@ -234,15 +237,16 @@ export async function deleteSession(sessionId: string, userId: string): Promise<
   }
 }
 
-export async function deleteAllSessions(userId: string): Promise<{ sessions_deleted: number; messages_deleted: number; summaries_deleted: number } | null> {
+export async function deleteAllSessions(cookieId: string): Promise<{ sessions_deleted: number; messages_deleted: number; summaries_deleted: number } | null> {
   console.log('[backend-api] deleteAllSessions invoked');
   try {
     const response = await fetch(
-      `${serverConfig.backendApiUrl}/sessions?user_id=${userId}`,
+      `${serverConfig.backendApiUrl}/sessions`,
       {
         method: 'DELETE',
         headers: {
           'accept': 'application/json',
+          'x-cookie-id': cookieId,
         },
         cache: 'no-store',
       }
@@ -262,7 +266,7 @@ export async function deleteAllSessions(userId: string): Promise<{ sessions_dele
 
 export async function updateMessageFeedback(
   messageId: string,
-  userId: string,
+  cookieId: string,
   feedback: 'liked' | 'disliked' | 'neutral'
 ): Promise<{ message_id: string; feedback: 'liked' | 'disliked' | 'neutral' } | null> {
   console.log('[backend-api] updateMessageFeedback invoked');
@@ -274,7 +278,7 @@ export async function updateMessageFeedback(
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/json',
-          'X-User-Id': userId,
+          'x-cookie-id': cookieId,
         },
         body: JSON.stringify({ feedback }),
         cache: 'no-store',
@@ -294,6 +298,7 @@ export async function updateMessageFeedback(
 }
 
 interface GenerateNameParams {
+  readonly cookieId: string;
   readonly query: string;
   readonly sessionId?: string;
   readonly turnsBetweenChatName?: number;
@@ -318,10 +323,14 @@ export async function generateSessionName(
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/json',
+          'x-cookie-id': params.cookieId,
         },
         body: JSON.stringify({
           query: params.query,
           session_id: params.sessionId,
+          provider_options: {
+            api_type: chatConfig.nameGeneration.apiType,
+          },
           turns_between_chat_name: params.turnsBetweenChatName ?? 20,
           max_chat_name_length: params.maxChatNameLength ?? 50,
           max_chat_name_words: params.maxChatNameWords ?? 5,

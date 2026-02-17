@@ -6,6 +6,8 @@ export const serverConfig = {
   backendApiUrl: process.env.BACKEND_API_URL || 'http://0.0.0.0:8000/api',
 } as const;
 
+export type ApiType = 'responses' | 'chat_completion';
+
 export const chatConfig = {
   questionTopics: [
     'who I am',
@@ -18,6 +20,14 @@ export const chatConfig = {
   turnsBetweenChatName: 20,
   maxChatNameLength: 50,
   maxChatNameWords: 5,
+  response: {
+    apiType: 'chat_completion' as ApiType,
+    // provider: 'openai', // Future: add provider options
+  },
+  nameGeneration: {
+    apiType: 'chat_completion' as ApiType,
+    // provider: 'openai', // Future: add provider options
+  },
 } as const;
 
 export const breakpoints = {

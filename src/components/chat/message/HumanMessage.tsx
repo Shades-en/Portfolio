@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { CustomTooltip } from "@/components/ui/custom-tooltip";
-import { User, Edit, Copy, Check } from "lucide-react";
+import { User, Copy, Check } from "lucide-react";
 import type { Message } from '@/types/chat';
 
 interface HumanMessageProps {
@@ -8,13 +8,7 @@ interface HumanMessageProps {
 }
 
 const HumanMessage: React.FC<HumanMessageProps> = ({ message }) => {
-  const [edited, setEdited] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  const handleEdit = (): void => {
-    setEdited(true);
-    setTimeout(() => setEdited(false), 2000);
-  };
 
   const handleCopy = (): void => {
     // Extract all text content from parts
@@ -68,14 +62,6 @@ const HumanMessage: React.FC<HumanMessageProps> = ({ message }) => {
           </button>
         </CustomTooltip>
 
-        {/* <CustomTooltip content="Edit message" side="bottom">
-          <button 
-            onClick={handleEdit}
-            className="p-1.5 rounded-lg sm:hover:bg-primary/10 text-muted-foreground sm:hover:text-primary transition-colors pointer-events-auto"
-          >
-            <Edit size={14} />
-          </button>
-        </CustomTooltip> */}
       </div>
     </div>
   );

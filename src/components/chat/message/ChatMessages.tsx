@@ -17,7 +17,8 @@ interface ChatMessagesProps {
 
 const ChatMessages: React.FC<ChatMessagesProps> = () => {
   const { currentSession } = useAppSelector((state) => state.chat);
-  const { chat } = useSharedChatContext();
+  const { getOrCreateChat } = useSharedChatContext();
+  const chat = getOrCreateChat(currentSession?.id ?? 'new');
   const { messages, status, error, setMessages } = useChat({ chat, experimental_throttle: 1 });
   const lastMessage = messages.at(-1);
   const hasShownErrorToast = useRef(false);
