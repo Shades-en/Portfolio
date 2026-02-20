@@ -131,7 +131,4 @@ The portfolio includes a fully functional contact form. To enable email function
    ```
 
 ## TODO:
-- [ ] Learn about streaming markdown
-- [ ] Learn about AI SDK with python streaming
-- [ ] Integrate backend with UI
-
+- [ ] Reorganize chat slices and reducers for clearer structure and maintainability

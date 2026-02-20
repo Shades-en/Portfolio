@@ -185,5 +185,3 @@ export default function Chat({
     </>
   );
 }
-
-// Reorganise slices, slice reducers, it looks very messy otherwise.
