@@ -38,7 +38,7 @@ const ToolCallMessage: React.FC<ToolCallMessageProps> = ({ toolPart }) => {
             <span className="font-mono text-xs text-foreground">{functionName}</span>
             {hasArgs && !isExpanded && (
               <span className="text-xs text-muted-foreground">
-                {argEntries[0][0]}: "{String(argEntries[0][1])}"
+                {`${argEntries[0][0]}: "${String(argEntries[0][1])}"`}
                 {hasMultipleArgs && ` +${argEntries.length - 1} more`}
               </span>
             )}
@@ -54,7 +54,7 @@ const ToolCallMessage: React.FC<ToolCallMessageProps> = ({ toolPart }) => {
             {argEntries.map(([key, value]) => (
               <div key={key} className="flex gap-2">
                 <span className="text-muted-foreground font-medium text-xs">{key}:</span>
-                <span className="text-foreground break-all text-xs">"{String(value)}"</span>
+                <span className="text-foreground break-all text-xs">{`"${String(value)}"`}</span>
               </div>
             ))}
           </div>

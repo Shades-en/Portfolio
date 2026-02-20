@@ -157,7 +157,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     <div data-chat-input className={containerClasses}>
       {showNewChatUI && (
         <div className='flex items-center gap-2 w-full justify-center my-10 sm:flex-row flex-col'>
-          <h1 className="xl:text-4xl sm:text-3xl text-3xl font-light whitespace-nowrap"> Let's talk about</h1>
+          <h1 className="xl:text-4xl sm:text-3xl text-3xl font-light whitespace-nowrap">{"Let's talk about"}</h1>
           <RotatingText
             texts={[...chatConfig.questionTopics]}
             mainClassName="px-2 sm:px-2 md:px-2 xl:text-3xl sm:text-3xl text-3xl transition-all duration-1000 font-regular bg-primary/90 text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
@@ -235,4 +235,3 @@ const ChatInput: React.FC<ChatInputProps> = ({
 };
 
 export default ChatInput;
-
