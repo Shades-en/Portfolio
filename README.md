@@ -131,4 +131,4 @@ The portfolio includes a fully functional contact form. To enable email function
    ```
 
 ## TODO:
-- [ ] Reorganize chat slices and reducers for clearer structure and maintainability
+- [ ] Reorganize chat slices and reducers for clearer structure and maintainability 
