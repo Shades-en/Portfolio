@@ -28,3 +28,4 @@ yarn.lock
 
 .windsurf/plans
 tsconfig.tsbuildinfo
+.codex
