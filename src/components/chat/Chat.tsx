@@ -35,6 +35,7 @@ export default function Chat({
   } = useAppSelector((state) => state.chat);
   const prevSessionIdRef = useRef<string | null>(null);
   const hasFetchedSessionRef = useRef<string | null>(null);
+  const hasResolvedMessagesBySessionRef = useRef<Record<string, boolean>>({});
   const hasFetchedInitialDataRef = useRef<boolean>(false);
   
   const isOnSessionPage = pathname?.startsWith('/chat/') && pathname !== '/chat';
@@ -53,6 +54,7 @@ export default function Chat({
       return;
     }
     hasFetchedSessionRef.current = targetSessionId;
+    hasResolvedMessagesBySessionRef.current[targetSessionId] = false;
     dispatch(setCurrentSessionError(null));
 
     // Check cache first, otherwise dispatch saga to fetch session
@@ -66,6 +68,7 @@ export default function Chat({
     // If the Chat instance already has messages (e.g., actively streaming), don't overwrite them
     // This preserves the user message and streaming AI response when switching back to a session
     if (currentMessages.length > 0) {
+      hasResolvedMessagesBySessionRef.current[targetSessionId] = true;
       return;
     }
 
@@ -74,6 +77,7 @@ export default function Chat({
       const messagesData = await fetchMessages(targetSessionId, 1, 50);
       
       if (!messagesData) {
+        hasResolvedMessagesBySessionRef.current[targetSessionId] = true;
         dispatch(setCurrentSessionError('messages_error'));
         return;
       }
@@ -91,7 +95,9 @@ export default function Chat({
       } else {
         setMessages([]);
       }
+      hasResolvedMessagesBySessionRef.current[targetSessionId] = true;
     } catch {
+      hasResolvedMessagesBySessionRef.current[targetSessionId] = true;
       dispatch(setCurrentSessionError('messages_error'));
     }
   }, [dispatch, reduxSessions, setMessages]);
@@ -148,7 +154,23 @@ export default function Chat({
   // For optimistically created sessions (via ChatInput), hasFetchedSessionRef won't match the session ID
   // In that case, don't show skeleton - let ChatMessages handle the streaming
   const isOptimisticSession = reduxCurrentSession && hasFetchedSessionRef.current !== reduxCurrentSession.id;
-  const isWaitingForMessages = isOnSessionPage && reduxCurrentSession && messages.length === 0 && !sessionError && !isOptimisticSession;
+  const currentResolvedSessionId = reduxCurrentSession?.id ?? sessionId ?? null;
+  const hasResolvedCurrentSessionMessages = currentResolvedSessionId
+    ? hasResolvedMessagesBySessionRef.current[currentResolvedSessionId] === true
+    : false;
+  const isWaitingForMessages = isOnSessionPage
+    && reduxCurrentSession
+    && messages.length === 0
+    && !sessionError
+    && !isOptimisticSession
+    && !hasResolvedCurrentSessionMessages;
+  const shouldShowIntroForEmptySession = Boolean(
+    reduxCurrentSession
+    && messages.length === 0
+    && !sessionError
+    && !isOptimisticSession
+    && hasResolvedCurrentSessionMessages
+  );
   // Show skeleton when on session page, no session loaded, and we haven't fetched this session yet
   // This distinguishes page reload (hasFetchedSessionRef is null) from navigating away (hasFetchedSessionRef has value)
   const isSessionPageLoading = isOnSessionPage && !reduxCurrentSession && !sessionError && !hasFetchedSessionRef.current;
@@ -165,6 +187,16 @@ export default function Chat({
       return <SessionNotFound title={title} description={description} />;
     }
     
+    // For saved sessions with no messages, show the new-chat style intro UI
+    // while still sending the first message to the current session.
+    if (shouldShowIntroForEmptySession) {
+      return (
+        <div data-chat-content className="flex-1 flex flex-col min-h-0 relative overscroll-none">
+          <ChatInput newChat={true} />
+        </div>
+      );
+    }
+
     // Show ChatMessages if we have a session from Redux
     if (reduxCurrentSession) {
       return <ChatMessages />;

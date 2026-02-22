@@ -19,9 +19,6 @@ export function middleware(request: NextRequest): NextResponse {
       sameSite: 'lax',
       httpOnly: false,
     });
-    response.headers.set('x-is-new-user', 'true');
-  } else {
-    response.headers.set('x-is-new-user', 'false');
   }
   
   return response;

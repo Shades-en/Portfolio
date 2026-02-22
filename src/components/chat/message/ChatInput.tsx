@@ -27,8 +27,11 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const { getOrCreateChat } = useSharedChatContext();
   // For new chat, track the generated sessionId so we use the same Chat instance
   const [newChatSessionId, setNewChatSessionId] = useState<string | null>(null);
-  // Use the generated sessionId for new chats (after first message), otherwise use currentSession.id
-  const sessionIdForChat = newChat ? (newChatSessionId ?? 'new') : (currentSession?.id ?? 'new');
+  // For new chat UI, prefer currentSession if one exists (empty saved session case),
+  // otherwise use generated/new session identifiers.
+  const sessionIdForChat = newChat
+    ? (currentSession?.id ?? newChatSessionId ?? 'new')
+    : (currentSession?.id ?? 'new');
   const chat = getOrCreateChat(sessionIdForChat);
   const { status, stop } = useChat({ chat });
   const isStreaming = status === 'streaming' || status === 'submitted';
@@ -41,6 +44,10 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [showNewChatUI, setShowNewChatUI] = useState(newChat);
   const prevStatusRef = useRef(status);
+
+  useEffect(() => {
+    setShowNewChatUI(newChat);
+  }, [newChat]);
 
   // Persist pending session name to DB when streaming completes
   useEffect(() => {
@@ -78,7 +85,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
     let sessionId = currentSession?.id;
     let chatToUse = chat;
 
-    if (newChat) {
+    const shouldCreateNewSession = newChat && !currentSession?.id;
+    if (shouldCreateNewSession) {
       // Generate sessionId and update state so we use the same Chat instance
       sessionId = newChatSessionId ?? generateObjectId();
       if (!newChatSessionId) {
