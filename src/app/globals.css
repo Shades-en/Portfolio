@@ -396,21 +396,44 @@ All colors MUST be HSL for consistency.
   }
 
   .scrollbar-custom::-webkit-scrollbar {
-    width: 6px;
+    width: 2px;
   }
 
   .scrollbar-custom::-webkit-scrollbar-track {
     background: hsl(var(--secondary));
-    border-radius: 3px;
+    border-radius: 2px;
   }
 
   .scrollbar-custom::-webkit-scrollbar-thumb {
     background: hsl(var(--muted-foreground));
-    border-radius: 3px;
+    border-radius: 2px;
   }
 
   .scrollbar-custom::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--foreground) / 0.8);
+  }
+
+  .scrollbar-sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(216 24% 24%) hsl(222 47% 5%);
+  }
+
+  .scrollbar-sidebar::-webkit-scrollbar {
+    width: 2px;
+  }
+
+  .scrollbar-sidebar::-webkit-scrollbar-track {
+    background: hsl(222 47% 5%);
+    border-radius: 2px;
+  }
+
+  .scrollbar-sidebar::-webkit-scrollbar-thumb {
+    background: hsl(216 24% 24%);
+    border-radius: 2px;
+  }
+
+  .scrollbar-sidebar::-webkit-scrollbar-thumb:hover {
+    background: hsl(216 24% 30%);
   }
 
   /* Hide scrollbar for Chrome, Safari and Opera */

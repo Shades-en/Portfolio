@@ -89,9 +89,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
           </div>
         </div>
 
-        <div className="relative top-5 left-0 flex-1">
-          <div className="w-full transition-transform duration-300">
-            <div className="h-full flex flex-col justify-center">
+        <div className="mt-5 flex-1 min-h-0">
+          <div className="h-full min-h-0 w-full transition-transform duration-300">
+            <div className="h-full min-h-0 flex flex-col">
               <div className="p-4 py-1 border-b border-slate-800 h-24">
                 <div className="flex flex-col gap-2 h-full">
                   <NewChatButton 
@@ -115,40 +115,44 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
                   />
                 </div>
               </div>
-              <div 
-                className="flex-1 overflow-y-auto no-scrollbar"
+              <div
+                className="flex-1 min-h-0 overflow-hidden"
                 style={{ background: 'linear-gradient(to bottom, hsl(222, 47%, 8%)/0, hsl(222, 47%, 4%))' }}
               >
-                <div className={`p-3 px-2 mt-2 space-y-5 ${opacityAnimationClasses}`}>
+                <div className={`p-3 px-2 mt-2 h-full min-h-0 flex flex-col gap-5 overflow-hidden ${opacityAnimationClasses}`}>
                   {starredChats.length > 0 && (
-                    <div className='space-y-1'>
+                    <div className='space-y-1 flex flex-col shrink-0 min-h-0 max-h-[25%]'>
                       <div className='mb-3'>
                         <p className="text-xs font-medium text-slate-400 tracking-wide">Starred</p>
                       </div>
-                      {starredChats.map((session) => (
-                        <ChatListItem
-                          key={session.id}
-                          chat={session}
-                          isActive={session.id === currentSession?.id}
-                          showTimestamp
-                        />
-                      ))}
+                      <div className="overflow-y-auto scrollbar-sidebar pr-1">
+                        {starredChats.map((session) => (
+                          <ChatListItem
+                            key={session.id}
+                            chat={session}
+                            isActive={session.id === currentSession?.id}
+                            showTimestamp
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
 
                   {allSessions.length > 0 && (
-                    <div className='space-y-1'>
+                    <div className='space-y-1 flex flex-col flex-1 min-h-0'>
                       <div className='mb-3'>
                         <p className="text-xs font-medium text-slate-400 tracking-wide">Recents</p>
                       </div>
-                      {allSessions.map((session) => (
-                        <ChatListItem
-                          key={session.id}
-                          chat={session}
-                          isActive={session.id === currentSession?.id}
-                          showTimestamp
-                        />
-                      ))}
+                      <div className="overflow-y-auto scrollbar-sidebar pr-1">
+                        {allSessions.map((session) => (
+                          <ChatListItem
+                            key={session.id}
+                            chat={session}
+                            isActive={session.id === currentSession?.id}
+                            showTimestamp
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -157,7 +161,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
           </div>
         </div>
 
-        <div className="p-4 border-t space-y-2" style={{ borderColor: 'hsl(197, 92%, 56%)/10' }}>
+        <div className="shrink-0 p-4 border-t space-y-2" style={{ borderColor: 'hsl(197, 92%, 56%)/10' }}>
           {/* Collapsed state footer - logo (shown when collapsed, hidden when open) */}
           {/* Before hydration: use CSS responsive classes. After hydration: JS controls visibility */}
           <div 
@@ -197,4 +201,3 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ collapsed, onCollapsedChange,
 };
 
 export default ChatSidebar;
-
