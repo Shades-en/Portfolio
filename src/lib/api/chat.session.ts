@@ -137,18 +137,46 @@ export async function generateSessionName(
   params: GenerateNameParams
 ): Promise<GenerateNameResponse | null> {
   try {
+    const trimmedQuery = params.query?.trim();
+    const hasSessionId = Boolean(params.sessionId);
+    if (!hasSessionId && !trimmedQuery) {
+      console.error('Invalid generateSessionName request: query is required when sessionId is missing');
+      return null;
+    }
+
+    if (params.turnsBetweenChatName !== undefined && params.turnsBetweenChatName < 1) {
+      console.error('Invalid generateSessionName request: turnsBetweenChatName must be >= 1');
+      return null;
+    }
+    if (
+      params.maxChatNameLength !== undefined
+      && (params.maxChatNameLength < 10 || params.maxChatNameLength > 200)
+    ) {
+      console.error('Invalid generateSessionName request: maxChatNameLength must be between 10 and 200');
+      return null;
+    }
+    if (
+      params.maxChatNameWords !== undefined
+      && (params.maxChatNameWords < 1 || params.maxChatNameWords > 20)
+    ) {
+      console.error('Invalid generateSessionName request: maxChatNameWords must be between 1 and 20');
+      return null;
+    }
+
+    const payload = {
+      query: trimmedQuery,
+      session_id: params.sessionId,
+      turns_between_chat_name: params.turnsBetweenChatName,
+      max_chat_name_length: params.maxChatNameLength,
+      max_chat_name_words: params.maxChatNameWords,
+    };
+
     const response = await fetch('/api/chat/sessions/generate-name', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        query: params.query,
-        session_id: params.sessionId,
-        turns_between_chat_name: params.turnsBetweenChatName,
-        max_chat_name_length: params.maxChatNameLength,
-        max_chat_name_words: params.maxChatNameWords,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

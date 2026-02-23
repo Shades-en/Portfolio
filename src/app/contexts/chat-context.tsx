@@ -4,7 +4,6 @@ import React, { createContext, useContext, ReactNode, useRef, useCallback, useMe
 import { Chat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Message } from '@/types/chat';
-import { chatConfig } from '@/config';
 
 interface ChatContextValue {
   getOrCreateChat: (sessionId: string) => Chat<Message>;
@@ -12,6 +11,11 @@ interface ChatContextValue {
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
+
+interface ChatRequestBody {
+  readonly user_cookie?: string;
+  readonly session_id?: string;
+}
 
 function createChat(): Chat<Message> {
   return new Chat<Message>({
@@ -28,18 +32,13 @@ function createChat(): Chat<Message> {
           (part): part is { type: 'text'; text: string } =>
             part.type === 'text' && typeof (part as { text?: unknown }).text === 'string',
         );
-        const customBody = (body ?? {}) as Record<string, unknown> & {
-          query_message?: Record<string, unknown>;
-        };
-
+        const customBody = (body ?? {}) as ChatRequestBody;
         const mergedBody = {
-          ...customBody,
           query_message: {
             query: textPart?.text ?? '',
           },
-          provider_options: {
-            api_type: chatConfig.response.apiType,
-          },
+          user_cookie: customBody.user_cookie,
+          session_id: customBody.session_id,
         };
 
         return {

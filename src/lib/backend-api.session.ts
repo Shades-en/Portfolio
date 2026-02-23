@@ -1,6 +1,6 @@
 import { cache } from 'react';
 import 'server-only';
-import { serverConfig, chatConfig } from '@/config';
+import { serverConfig } from '@/config';
 import type { Session, SessionsResponse, AllSessionsResponse } from '@/types/chat';
 import type { GenerateNameParams, GenerateNameResponse } from './backend-api.types';
 
@@ -192,6 +192,20 @@ export async function deleteAllSessions(
 export async function generateSessionName(params: GenerateNameParams): Promise<GenerateNameResponse | null> {
   console.log('[backend-api] generateSessionName invoked');
   try {
+    const trimmedQuery = params.query?.trim();
+    if (!params.sessionId && !trimmedQuery) {
+      console.error('Invalid generateSessionName request: query is required when sessionId is missing');
+      return null;
+    }
+
+    const payload = {
+      query: trimmedQuery,
+      session_id: params.sessionId,
+      turns_between_chat_name: params.turnsBetweenChatName ?? 20,
+      max_chat_name_length: params.maxChatNameLength ?? 50,
+      max_chat_name_words: params.maxChatNameWords ?? 5,
+    };
+
     const response = await fetch(`${serverConfig.backendApiUrl}/sessions/generate-name`, {
       method: 'POST',
       headers: {
@@ -199,16 +213,7 @@ export async function generateSessionName(params: GenerateNameParams): Promise<G
         'Content-Type': 'application/json',
         'x-cookie-id': params.cookieId,
       },
-      body: JSON.stringify({
-        query: params.query,
-        session_id: params.sessionId,
-        provider_options: {
-          api_type: chatConfig.nameGeneration.apiType,
-        },
-        turns_between_chat_name: params.turnsBetweenChatName ?? 20,
-        max_chat_name_length: params.maxChatNameLength ?? 50,
-        max_chat_name_words: params.maxChatNameWords ?? 5,
-      }),
+      body: JSON.stringify(payload),
       cache: 'no-store',
     });
 

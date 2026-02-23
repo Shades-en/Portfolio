@@ -1,5 +1,5 @@
 export interface GenerateNameParams {
-  readonly query: string;
+  readonly query?: string;
   readonly sessionId?: string;
   readonly turnsBetweenChatName?: number;
   readonly maxChatNameLength?: number;

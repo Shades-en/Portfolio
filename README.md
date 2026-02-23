@@ -129,6 +129,3 @@ The portfolio includes a fully functional contact form. To enable email function
    ```
    RESEND_API_KEY=your_api_key_here
    ```
-
-## TODO:
-- [ ] Reorganize chat slices and reducers for clearer structure and maintainability 
