@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { generateSessionName } from '@/lib/backend-api';
+import { jsonWithTrace } from '@/app/api/chat/_shared/response';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!userCookie?.value) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!query && !session_id) {
       return NextResponse.json(
         { error: 'Query is required when session_id is not provided' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -33,19 +34,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       maxChatNameWords: max_chat_name_words,
     });
 
-    if (!result) {
-      return NextResponse.json(
+    if (!result.ok || !result.data) {
+      return jsonWithTrace(
         { error: 'Failed to generate session name' },
-        { status: 500 }
+        { status: result.status || 500 },
+        result.traceHeaders,
       );
     }
 
-    return NextResponse.json(result);
+    return jsonWithTrace(result.data, undefined, result.traceHeaders);
   } catch (error) {
     console.error('Error in generate-name API route:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

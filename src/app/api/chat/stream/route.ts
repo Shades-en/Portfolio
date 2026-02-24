@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import { serverConfig } from '@/config';
+import { pickTraceHeaders, applyTraceHeaders, withExposedTraceHeaders } from '@/lib/trace-headers';
 
 export const maxDuration = 60;
 
@@ -74,9 +75,14 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
 
     if (!response.ok) {
+      const errorHeaders = new Headers({
+        'Content-Type': 'application/json',
+      });
+      applyTraceHeaders(errorHeaders, pickTraceHeaders(response.headers));
+      withExposedTraceHeaders(errorHeaders);
       return new Response(JSON.stringify({ error: 'Backend request failed' }), {
         status: response.status,
-        headers: { 'Content-Type': 'application/json' },
+        headers: errorHeaders,
       });
     }
 
@@ -87,15 +93,19 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
     }
 
+    const streamHeaders = new Headers({
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Content-Encoding': 'none',
+      'x-vercel-ai-ui-message-stream': 'v1',
+    });
+    applyTraceHeaders(streamHeaders, pickTraceHeaders(response.headers));
+    withExposedTraceHeaders(streamHeaders);
+
     return new Response(response.body, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Content-Encoding': 'none',
-        'x-vercel-ai-ui-message-stream': 'v1',
-      },
+      status: response.status,
+      headers: streamHeaders,
     });
   } catch (error) {
     console.error('Error in chat stream API route:', error);

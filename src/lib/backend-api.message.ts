@@ -1,15 +1,17 @@
-import { cache } from 'react';
 import 'server-only';
 import { serverConfig } from '@/config';
 import type { MessagesResponse } from '@/types/chat';
+import { pickTraceHeaders } from '@/lib/trace-headers';
+import type { BackendApiResult } from './backend-api.types';
 
-export const callBackendMessages = cache(async (
+export async function callBackendMessages(
   sessionId: string,
   cookieId: string,
   page: number = 1,
-  pageSize: number = 50
-): Promise<MessagesResponse | null> => {
+  pageSize: number = 50,
+): Promise<BackendApiResult<MessagesResponse>> {
   console.log('[backend-api] callBackendMessages invoked');
+
   try {
     const response = await fetch(`${serverConfig.backendApiUrl}/sessions/${sessionId}/messages?page=${page}&page_size=${pageSize}`, {
       headers: {
@@ -19,27 +21,44 @@ export const callBackendMessages = cache(async (
       cache: 'no-store',
     });
 
+    const traceHeaders = pickTraceHeaders(response.headers);
+
     if (!response.ok) {
-      if (response.status === 404) {
-        return null;
+      if (response.status !== 404) {
+        console.error('Failed to fetch messages from backend:', response.status);
       }
-      console.error('Failed to fetch messages from backend:', response.status);
-      return null;
+      return {
+        data: null,
+        ok: false,
+        status: response.status,
+        traceHeaders,
+      };
     }
 
-    return await response.json();
+    return {
+      data: (await response.json()) as MessagesResponse,
+      ok: true,
+      status: response.status,
+      traceHeaders,
+    };
   } catch (error) {
     console.error('Error calling backend messages API:', error);
-    return null;
+    return {
+      data: null,
+      ok: false,
+      status: 500,
+      traceHeaders: {},
+    };
   }
-});
+}
 
 export async function updateMessageFeedback(
   messageId: string,
   cookieId: string,
-  feedback: 'liked' | 'disliked' | 'neutral'
-): Promise<{ message_id: string; feedback: 'liked' | 'disliked' | 'neutral' } | null> {
+  feedback: 'liked' | 'disliked' | 'neutral',
+): Promise<BackendApiResult<{ message_id: string; feedback: 'liked' | 'disliked' | 'neutral' }>> {
   console.log('[backend-api] updateMessageFeedback invoked');
+
   try {
     const response = await fetch(`${serverConfig.backendApiUrl}/messages/${messageId}/feedback`, {
       method: 'PATCH',
@@ -52,14 +71,31 @@ export async function updateMessageFeedback(
       cache: 'no-store',
     });
 
+    const traceHeaders = pickTraceHeaders(response.headers);
+
     if (!response.ok) {
       console.error('Failed to update message feedback:', response.status);
-      return null;
+      return {
+        data: null,
+        ok: false,
+        status: response.status,
+        traceHeaders,
+      };
     }
 
-    return await response.json();
+    return {
+      data: (await response.json()) as { message_id: string; feedback: 'liked' | 'disliked' | 'neutral' },
+      ok: true,
+      status: response.status,
+      traceHeaders,
+    };
   } catch (error) {
     console.error('Error updating message feedback:', error);
-    return null;
+    return {
+      data: null,
+      ok: false,
+      status: 500,
+      traceHeaders: {},
+    };
   }
 }

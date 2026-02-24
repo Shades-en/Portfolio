@@ -1,10 +1,12 @@
-import { cache } from 'react';
 import 'server-only';
 import { serverConfig } from '@/config';
 import type { User } from '@/types/chat';
+import { pickTraceHeaders } from '@/lib/trace-headers';
+import type { BackendApiResult } from './backend-api.types';
 
-export const callBackendUser = cache(async (cookieId: string): Promise<User | null> => {
+export async function callBackendUser(cookieId: string): Promise<BackendApiResult<User>> {
   console.log('[backend-api] callBackendUser invoked');
+
   try {
     const response = await fetch(`${serverConfig.backendApiUrl}/users`, {
       headers: {
@@ -14,18 +16,33 @@ export const callBackendUser = cache(async (cookieId: string): Promise<User | nu
       cache: 'no-store',
     });
 
-    if (response.status === 404) {
-      return null;
-    }
+    const traceHeaders = pickTraceHeaders(response.headers);
 
     if (!response.ok) {
-      console.error('Failed to fetch user from backend:', response.status);
-      return null;
+      if (response.status !== 404) {
+        console.error('Failed to fetch user from backend:', response.status);
+      }
+      return {
+        data: null,
+        ok: false,
+        status: response.status,
+        traceHeaders,
+      };
     }
 
-    return await response.json();
+    return {
+      data: (await response.json()) as User,
+      ok: true,
+      status: response.status,
+      traceHeaders,
+    };
   } catch (error) {
     console.error('Error calling backend user API:', error);
-    return null;
+    return {
+      data: null,
+      ok: false,
+      status: 500,
+      traceHeaders: {},
+    };
   }
-});
+}

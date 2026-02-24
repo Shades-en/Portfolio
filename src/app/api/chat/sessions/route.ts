@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { callBackendSessions, deleteAllSessions } from '@/lib/backend-api';
+import { jsonWithTrace } from '@/app/api/chat/_shared/response';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (!userCookie?.value) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -18,21 +19,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const page = Number.parseInt(searchParams.get('page') || '1');
     const pageSize = Number.parseInt(searchParams.get('page_size') || '50');
 
-    const data = await callBackendSessions(userCookie.value, page, pageSize);
-    
-    if (!data) {
-      return NextResponse.json(
+    const result = await callBackendSessions(userCookie.value, page, pageSize);
+
+    if (!result.ok || !result.data) {
+      return jsonWithTrace(
         { error: 'Failed to fetch sessions' },
-        { status: 500 }
+        { status: result.status || 500 },
+        result.traceHeaders,
       );
     }
 
-    return NextResponse.json(data);
+    return jsonWithTrace(result.data, undefined, result.traceHeaders);
   } catch (error) {
     console.error('Error in sessions API route:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -45,19 +47,26 @@ export async function DELETE(): Promise<NextResponse> {
     if (!userCookie?.value) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const result = await deleteAllSessions(userCookie.value);
 
-    if (!result) {
-      return NextResponse.json({ error: 'Failed to delete all sessions' }, { status: 500 });
+    if (!result.ok || !result.data) {
+      return jsonWithTrace(
+        { error: 'Failed to delete all sessions' },
+        { status: result.status || 500 },
+        result.traceHeaders,
+      );
     }
 
-    return NextResponse.json(result);
+    return jsonWithTrace(result.data, undefined, result.traceHeaders);
   } catch (error) {
     console.error('Error in delete all sessions API route:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    );
   }
 }

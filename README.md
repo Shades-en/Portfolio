@@ -129,3 +129,6 @@ The portfolio includes a fully functional contact form. To enable email function
    ```
    RESEND_API_KEY=your_api_key_here
    ```
+
+# TODO
+1. Implement Lightmode

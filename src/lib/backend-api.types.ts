@@ -1,3 +1,5 @@
+import type { TraceHeaders } from '@/lib/trace-headers';
+
 export interface GenerateNameParams {
   readonly cookieId: string;
   readonly query?: string;
@@ -10,4 +12,11 @@ export interface GenerateNameParams {
 export interface GenerateNameResponse {
   readonly name: string;
   readonly session_id: string | null;
+}
+
+export interface BackendApiResult<T> {
+  readonly data: T | null;
+  readonly ok: boolean;
+  readonly status: number;
+  readonly traceHeaders: TraceHeaders;
 }

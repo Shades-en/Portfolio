@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { deleteSession as deleteSessionFromBackend, callBackendSession } from '@/lib/backend-api';
+import { jsonWithTrace } from '@/app/api/chat/_shared/response';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ sessionId: string }> }
+  { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
   try {
     const cookieStore = await cookies();
@@ -15,13 +16,15 @@ export async function GET(
     }
 
     const { sessionId } = await params;
-    const session = await callBackendSession(sessionId, userCookie.value);
+    const result = await callBackendSession(sessionId, userCookie.value);
 
-    if (!session) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    if (!result.ok || !result.data) {
+      const status = result.status === 404 ? 404 : (result.status || 500);
+      const error = status === 404 ? 'Session not found' : 'Failed to fetch session';
+      return jsonWithTrace({ error }, { status }, result.traceHeaders);
     }
 
-    return NextResponse.json(session);
+    return jsonWithTrace(result.data, undefined, result.traceHeaders);
   } catch (error) {
     console.error('Error in get session API route:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -30,7 +33,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ sessionId: string }> }
+  { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
   try {
     const cookieStore = await cookies();
@@ -43,11 +46,11 @@ export async function DELETE(
     const { sessionId } = await params;
     const result = await deleteSessionFromBackend(sessionId, userCookie.value);
 
-    if (!result) {
-      return NextResponse.json({ error: 'Failed to delete session' }, { status: 500 });
+    if (!result.ok || !result.data) {
+      return jsonWithTrace({ error: 'Failed to delete session' }, { status: result.status || 500 }, result.traceHeaders);
     }
 
-    return NextResponse.json(result);
+    return jsonWithTrace(result.data, undefined, result.traceHeaders);
   } catch (error) {
     console.error('Error in delete session API route:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

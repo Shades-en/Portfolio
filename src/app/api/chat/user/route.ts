@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { callBackendUser } from '@/lib/backend-api';
+import { jsonWithTrace } from '@/app/api/chat/_shared/response';
 
 export async function GET(): Promise<NextResponse> {
   const cookieStore = await cookies();
@@ -10,11 +11,11 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json(null, { status: 404 });
   }
 
-  const user = await callBackendUser(userCookie);
-  
-  if (!user) {
-    return NextResponse.json(null, { status: 404 });
+  const result = await callBackendUser(userCookie);
+
+  if (!result.data) {
+    return jsonWithTrace(null, { status: 404 }, result.traceHeaders);
   }
 
-  return NextResponse.json(user);
+  return jsonWithTrace(result.data, undefined, result.traceHeaders);
 }
