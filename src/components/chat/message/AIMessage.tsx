@@ -14,7 +14,7 @@ interface AIMessageProps {
 
 const AIMessage: React.FC<AIMessageProps> = ({ message, isStreaming = false }) => {
   const [copied, setCopied] = useState(false);
-  const { liked, disliked, handleLike, handleDislike } = useMessageFeedback({
+  const { liked, disliked, handleLike, handleDislike, canSubmitFeedback } = useMessageFeedback({
     messageId: message.id,
     initialFeedback: message.feedback ?? 'neutral',
   });
@@ -107,7 +107,8 @@ const AIMessage: React.FC<AIMessageProps> = ({ message, isStreaming = false }) =
               <CustomTooltip content="Good response">
                 <button 
                   onClick={handleLike}
-                  className={`p-2 rounded-lg sm:hover:bg-primary/10 transition-colors ${liked ? 'text-primary' : 'text-muted-foreground sm:hover:text-primary'}`}
+                  disabled={!canSubmitFeedback}
+                  className={`p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${canSubmitFeedback ? 'sm:hover:bg-primary/10' : ''} ${liked ? 'text-primary' : 'text-muted-foreground'} ${canSubmitFeedback ? 'sm:hover:text-primary' : ''}`}
                 >
                   <ThumbsUp size={16} fill={liked ? 'currentColor' : 'none'} />
                 </button>
@@ -118,7 +119,8 @@ const AIMessage: React.FC<AIMessageProps> = ({ message, isStreaming = false }) =
               <CustomTooltip content="Bad response">
                 <button 
                   onClick={handleDislike}
-                  className={`p-2 rounded-lg sm:hover:bg-primary/10 transition-colors ${disliked ? 'text-primary' : 'text-muted-foreground sm:hover:text-primary'}`}
+                  disabled={!canSubmitFeedback}
+                  className={`p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${canSubmitFeedback ? 'sm:hover:bg-primary/10' : ''} ${disliked ? 'text-primary' : 'text-muted-foreground'} ${canSubmitFeedback ? 'sm:hover:text-primary' : ''}`}
                 >
                   <ThumbsDown size={16} fill={disliked ? 'currentColor' : 'none'} />
                 </button>

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch } from '@/store/hooks';
 import { updateMessageFeedbackRequest } from '@/store/slices/chatSlice';
 import { toast } from '@/hooks/use-toast';
 
@@ -23,13 +23,12 @@ export function useMessageFeedback({
   initialFeedback,
 }: UseMessageFeedbackProps): UseMessageFeedbackReturn {
   const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.chat.user);
   const [currentFeedback, setCurrentFeedback] = useState<FeedbackType>(initialFeedback);
 
-  const canSubmitFeedback = Boolean(user?.id);
+  const canSubmitFeedback = messageId.trim().length > 0;
 
   const submitFeedback = useCallback((newFeedback: FeedbackType) => {
-    if (!user?.id) {
+    if (!canSubmitFeedback) {
       toast({
         title: 'Unable to save feedback',
         description: 'Please try again later.',
@@ -46,7 +45,7 @@ export function useMessageFeedback({
       feedback: newFeedback,
       previousFeedback,
     }));
-  }, [dispatch, messageId, currentFeedback, user?.id]);
+  }, [canSubmitFeedback, dispatch, messageId, currentFeedback]);
 
   const handleLike = useCallback(() => {
     const newFeedback: FeedbackType = currentFeedback === 'liked' ? 'neutral' : 'liked';
