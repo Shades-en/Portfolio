@@ -11,6 +11,7 @@ const PROXY_ALLOWED_HOSTS_ENV = 'PROXY_ALLOWED_HOSTS';
 const SUPPORTED_PROTOCOLS = new Set(['http:', 'https:']);
 
 const REQUEST_HEADERS_TO_SKIP = new Set([
+  'accept-encoding',
   'connection',
   'content-length',
   'host',
@@ -25,6 +26,8 @@ const REQUEST_HEADERS_TO_SKIP = new Set([
 
 const RESPONSE_HEADERS_TO_SKIP = new Set([
   'connection',
+  'content-encoding',
+  'content-length',
   'keep-alive',
   'proxy-authenticate',
   'proxy-authorization',
